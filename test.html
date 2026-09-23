@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<button onclick="sendData()">
+  Test gửi dữ liệu
+</button>
+
+<script>
+
+async function sendData() {
+
+  await fetch(
+    "URL_APPS_SCRIPT_CUA_BAN",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        hello: "world"
+      })
+    }
+  );
+
+  alert("Đã gửi");
+
+}
+
+</script>
+
+</body>
+</html>
