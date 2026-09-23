@@ -319,6 +319,8 @@ let dailyData = JSON.parse(localStorage.getItem("bn_daily_v7") || "{}");
 let currentSales = { items: {} };
 let stockIn = {};
 let currentPrices = {};
+  const GOOGLE_SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbwA2PeFqvCtFsgk5VVsKmPaeYgjERzT1ZbTpZtPKtb_IbdAs6AvgvGbJVKg_E0DMEY/exec";
 
 function getLatestPricesBefore(dateVal) {
   let defaultP = {};
@@ -346,16 +348,34 @@ function loadDateData() {
   currentPrices = dailyData[dateVal].prices || getLatestPricesBefore(dateVal);
 }
 
-function saveCurrentDateData() {
-  let dateVal = document.getElementById("workDate").value;
+async function saveCurrentDateData() {
+
+  let dateVal =
+    document.getElementById("workDate").value;
+
   dailyData[dateVal] = {
     sales: currentSales,
     stockIn: stockIn,
     prices: currentPrices
   };
-  localStorage.setItem("bn_daily_v7", JSON.stringify(dailyData));
-  alert(`Đã lưu thành công dữ liệu ngày: ${dateVal}`);
+
+  localStorage.setItem(
+    "bn_daily_v7",
+    JSON.stringify(dailyData)
+  );
+
+  await syncToGoogle({
+    type: "daily",
+    date: dateVal,
+    sales: currentSales,
+    stockIn: stockIn,
+    prices: currentPrices
+  });
+
+  alert("Đã lưu lên máy và Google Sheet");
+
   renderAll();
+
 }
 
 function onDateChange() {
@@ -378,6 +398,26 @@ function getPortionRatio(itemKey) {
 }
 
 const money = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + "đ";
+  async function syncToGoogle(payload) {
+
+  try {
+
+    await fetch(
+      GOOGLE_SCRIPT_URL,
+      {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify(payload)
+      }
+    );
+
+  } catch (err) {
+
+    console.error(err);
+
+  }
+
+}
 const cost = r => r.ings.reduce((s, [n, q]) => s + q * (currentPrices[n]?.price || 0), 0);
 
 // Hàm định dạng số hiển thị linh hoạt (giữ tối đa 3 chữ số thập phân cho gia vị)
