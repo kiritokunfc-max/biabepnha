@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nội Quy & Trách Nhiệm Các Bộ Phận</title>
+<!-- Thư viện hỗ trợ xuất PDF chất lượng cao -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: "Times New Roman", Times, serif; }
+body { background: #e2e8f0; padding: 20px 0; }
+
+/* Nút bấm tải PDF */
+.action-bar { text-align: center; margin-bottom: 20px; position: sticky; top: 10px; z-index: 1000; }
+.btn-pdf { background: #1e3a8a; color: white; border: none; padding: 12px 24px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
+.btn-pdf:hover { background: #1d4ed8; }
+
+/* Chuẩn kích thước khổ A4 */
+.pdf-container { width: 210mm; margin: 0 auto; }
+.page { width: 210mm; min-height: 297mm; padding: 20mm 18mm; background: #fff; border: 1px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; position: relative; }
+
+/* Kỹ thuật tách trang khi xuất PDF */
+.page-break { page-break-after: always; break-after: page; }
+
+/* Format văn bản nội quy */
+.header-doc { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+.header-doc h3 { font-size: 13pt; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
+.header-doc h1 { font-size: 17pt; font-weight: bold; color: #1e3a8a; text-transform: uppercase; margin-bottom: 4px; }
+.header-doc p { font-size: 11pt; font-style: italic; }
+
+.section-box { margin-bottom: 14px; }
+.section-title { font-size: 12pt; font-weight: bold; text-transform: uppercase; background: #f1f5f9; padding: 5px 8px; border-left: 4px solid #1e3a8a; margin-bottom: 8px; }
+
+ul { padding-left: 22px; margin-bottom: 8px; }
+li { font-size: 11pt; line-height: 1.5; margin-bottom: 5px; text-align: justify; }
+
+.footer-sign { display: flex; justify-content: space-between; margin-top: 30px; text-align: center; font-size: 11pt; }
+.sign-box { width: 45%; }
+.sign-box strong { display: block; margin-bottom: 50px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<div class="action-bar">
+  <button class="btn-pdf" onclick="exportPDF()">📄 TẢI FILE PDF (5 TRANG TÁCH RIÊNG)</button>
+</div>
+
+<div class="pdf-container" id="pdf-content">
+
+  <!-- TRANG 1: BẢO VỆ -->
+  <div class="page page-break">
+    <div class="header-doc">
+      <h3>BẾP NHÀ - NỘI QUY & QUY TRÌNH LÀM VIỆC</h3>
+      <h1>BẢNG NỘI QUY & TRÁCH NHIỆM BỘ PHẬN BẢO VỆ</h1>
+      <p>Áp dụng cho toàn thể nhân viên thuộc bộ phận Bảo vệ</p>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">I. NỘI QUY CHUNG & TÁC PHONG</div>
+      <ul>
+        <li>Đi làm đúng giờ, mặc đồng phục đúng quy định, đeo thẻ nhân viên, tác phong gọn gàng, nghiêm túc.</li>
+        <li>Tuyệt đối không uống rượu, bia, sử dụng chất kích thích hoặc đánh bài, chơi game trong giờ làm việc.</li>
+        <li>Giữ thái độ lịch sự, niềm nở, chủ động chào hỏi và dắt xe cho khách khi khách đến và đi.</li>
+        <li>Không tự ý bỏ vị trí trực khi chưa có người thay ca hoặc chưa có sự đồng ý của quản lý.</li>
+      </ul>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">II. TRÁCH NHIỆM CHUYÊN MÔN</div>
+      <ul>
+        <li><strong>Quản lý bãi xe:</strong> Hướng dẫn khách đỗ xe đúng vị trí, ghi và giao thẻ xe cẩn thận, hỗ trợ dắt xe cho khách, người già và phụ nữ.</li>
+        <li><strong>Bảo vệ tài sản:</strong> Giám sát toàn bộ tài sản của quán, phương tiện của khách hàng và nhân viên. Thường xuyên tuần tra khu vực nhà hàng.</li>
+        <li><strong>An ninh trật tự:</strong> Phát hiện và ngăn chặn kịp thời các hành vi gây mất trật tự, trộm cắp, gây nổ hoặc nguy cơ hỏa hoạn.</li>
+        <li><strong>Hỗ trợ vận chuyển:</strong> Hỗ trợ bộ phận Bếp/Quầy nhận hàng hóa nặng khi có yêu cầu từ Quản lý.</li>
+      </ul>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">III. QUY TRÌNH BÀN GIAO & ĐẦU / CUỐI CA</div>
+      <ul>
+        <li>Đầu ca: Kiểm tra tình trạng xe tồn, trang thiết bị bàn giao (thẻ xe, đèn pin, chìa khóa,...) và sổ ghi chép.</li>
+        <li>Cuối ca: Kiểm tra lại toàn bộ khóa cửa, hệ thống điện ngoài trời, số lượng xe còn tồn và bàn giao đầy đủ cho ca sau.</li>
+      </ul>
+    </div>
+
+    <div class="footer-sign">
+      <div class="sign-box"><strong>ĐẠI DIỆN QUẢN LÝ</strong>(Ký & ghi rõ họ tên)</div>
+      <div class="sign-box"><strong>NHÂN VIÊN BẢO VỆ</strong>(Ký & ghi rõ họ tên)</div>
+    </div>
+  </div>
+
+
+  <!-- TRANG 2: PHỤC VỤ -->
+  <div class="page page-break">
+    <div class="header-doc">
+      <h3>BẾP NHÀ - NỘI QUY & QUY TRÌNH LÀM VIỆC</h3>
+      <h1>BẢNG NỘI QUY & TRÁCH NHIỆM BỘ PHẬN PHỤC VỤ</h1>
+      <p>Áp dụng cho toàn thể nhân viên thuộc bộ phận Phục vụ</p>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">I. TÁC PHONG & THÁI ĐỘ PHỤC VỤ</div>
+      <ul>
+        <li>Đầu tóc gọn gàng, trang phục sạch sẽ, mang giày phẳng kín mũi, luôn nở nụ cười tươi với khách hàng.</li>
+        <li>Thái độ phục vụ: <strong>"Chủ động - Lịch sự - Âm cần - Nhanh chóng"</strong>. Ngôn từ chuẩn mực, tôn trọng khách.</li>
+        <li>Không sử dụng điện thoại cá nhân trong giờ làm việc (trừ trường hợp dùng máy order của quán).</li>
+        <li>Không tụ tập nói chuyện riêng, tự ý đứng tụm lại tại quầy hoặc ngồi tại bàn khách.</li>
+      </ul>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">II. TRÁCH NHIỆM CHUYÊN MÔN</div>
+      <ul>
+        <li><strong>Đón & Xếp bàn:</strong> Chủ động chào đón khách, dẫn khách vào bàn, giới thiệu thực đơn và tư vấn món ăn/đồ uống nhiệt tình.</li>
+        <li><strong>Ghi order:</strong> Lấy order chính xác, ghi rõ ghi chú của khách (ăn cay, không hành, ít đá,...) và chuyển ngay cho Bếp/Pha chế.</li>
+        <li><strong>Phục vụ món:</strong> Ra món đúng bàn, đúng thứ tự, kiểm tra món trước khi bưng ra. Bổ sung khăn lạnh, chén dĩa khi cần.</li>
+        <li><strong>Dọn dẹp & Vệ sinh:</strong> Dọn bàn sạch gọn ngay khi khách rời đi, lau sạch bàn ghế, chuẩn bị sẵn sàng đón lượt khách mới.</li>
+      </ul>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">III. QUY TRÌNH ĐẦU & CUỐI CA</div>
+      <ul>
+        <li>Đầu ca: Vệ sinh khu vực bàn ăn, lau chùi khay, lọ gia vị, đũa muỗng, chuẩn bị đầy đủ dụng cụ phục vụ.</li>
+        <li>Cuối ca: Lau dọn sạch sẽ bàn ghế, thu gom rác khu vực sảnh, giao lại hóa đơn/tiền cho thu ngân (nếu có).</li>
+      </ul>
+    </div>
+
+    <div class="footer-sign">
+      <div class="sign-box"><strong>ĐẠI DIỆN QUẢN LÝ</strong>(Ký & ghi rõ họ tên)</div>
+      <div class="sign-box"><strong>NHÂN VIÊN PHỤC VỤ</strong>(Ký & ghi rõ họ tên)</div>
+    </div>
+  </div>
+
+
+  <!-- TRANG 3: BẾP -->
+  <div class="page page-break">
+    <div class="header-doc">
+      <h3>BẾP NHÀ - NỘI QUY & QUY TRÌNH LÀM VIỆC</h3>
+      <h1>BẢNG NỘI QUY & TRÁCH NHIỆM BỘ PHẬN BẾP</h1>
+      <p>Áp dụng cho toàn thể nhân viên thuộc bộ phận Bếp</p>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">I. AN TOÀN VỆ SINH THỰC PHẨM & TÁC PHONG</div>
+      <ul>
+        <li>Mặc đúng đồng phục bếp, đội nón bếp, đeo khẩu trang và tạp dề trong suốt quá trình chế biến.</li>
+        <li>Giữ móng tay ngắn, sạch chùi, luôn rửa tay bằng xà phòng trước khi chế biến món ăn và sau khi đi vệ sinh.</li>
+        <li>Đảm bảo vệ sinh an toàn thực phẩm tuyệt đối. Không sử dụng nguyên liệu hết hạn, hôi mốc hay biến chất.</li>
+        <li>Tuyệt đối không hút thuốc, nói chuyện lớn tiếng hay giỡn đùa nguy hiểm trong khu vực bếp.</li>
+      </ul>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">II. TRÁCH NHIỆM CHUYÊN MÔN</div>
+      <ul>
+        <li><strong>Sơ chế & Chế biến:</strong> Sơ chế nguyên liệu tươi sống đúng tiêu chuẩn. Ra món đúng định lượng, đúng công thức, chuẩn vị và trang trí đẹp mắt.</li>
+        <li><strong>Tốc độ ra món:</strong> Ưu tiên chế biến theo đúng thứ tự order, đảm bảo ra món nhanh, nóng hổi, đúng yêu cầu của khách.</li>
+        <li><strong>Kiểm kê & Tồn kho:</strong> Kiểm tra nguyên liệu đầu ca, lập danh sách mua hàng/nhập hàng, bảo quản thực phẩm đúng nhiệt độ (ngăn đông/ngăn mát).</li>
+        <li><strong>Tiết kiệm nguyên liệu:</strong> Sử dụng nguyên liệu hợp lý, tránh lãng phí, tuân thủ nguyên tắc FIFO (Hàng nhập trước - Dùng trước).</li>
+      </ul>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">III. QUY TRÌNH BẢO TRÌ & AN TOÀN BẾP</div>
+      <ul>
+        <li>Đầu ca: Kiểm tra hệ thống gas, điện, nước và tình trạng hoạt động của các thiết bị bếp.</li>
+        <li>Cuối ca: Tắt toàn bộ van gas, ngắt thiết bị điện không cần thiết, tổng vệ sinh sàn bếp, bẫy mỡ và bàn chế biến.</li>
+      </ul>
+    </div>
+
+    <div class="footer-sign">
+      <div class="sign-box"><strong>BẾP TRƯỞNG / QUẢN LÝ</strong>(Ký & ghi rõ họ tên)</div>
+      <div class="sign-box"><strong>NHÂN VIÊN BẾP</strong>(Ký & ghi rõ họ tên)</div>
+    </div>
+  </div>
+
+
+  <!-- TRANG 4: TẠP VỤ -->
+  <div class="page page-break">
+    <div class="header-doc">
+      <h3>BẾP NHÀ - NỘI QUY & QUY TRÌNH LÀM VIỆC</h3>
+      <h1>BẢNG NỘI QUY & TRÁCH NHIỆM BỘ PHẬN TẠP VỤ</h1>
+      <p>Áp dụng cho toàn thể nhân viên thuộc bộ phận Tạp vụ</p>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">I. NỘI QUY CHUNG & TÁC PHONG</div>
+      <ul>
+        <li>Trang phục gọn gàng, mang găng tay và khẩu trang bảo hộ khi thực hiện công việc vệ sinh.</li>
+        <li>Cẩn thận, tỉ mỉ, tránh làm đổ vỡ bát đũa, ly cốc và các dụng cụ của nhà hàng.</li>
+        <li>Thái độ hòa nhã, thân thiện, sẵn sàng hỗ trợ các bộ phận khác khi có yêu cầu từ Quản lý.</li>
+      </ul>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">II. TRÁCH NHIỆM CHUYÊN MÔN</div>
+      <ul>
+        <li><strong>Rửa chén dĩa:</strong> Thu gom, phân loại và rửa sạch toàn bộ chén, dĩa, xoong nồi, dụng cụ bếp đúng quy trình. Lau khô và xếp vào đúng vị trí.</li>
+        <li><strong>Vệ sinh Nhà vệ sinh (WC):</strong> Kiểm tra và dọn dẹp nhà vệ sinh định kỳ (mỗi 30-60 phút/lần). Đảm bảo WC luôn khô ráo, sạch sẽ, thơm tho, đầy đủ giấy và xà phòng.</li>
+        <li><strong>Vệ sinh sảnh & Bếp:</strong> Quét dọn, lau sàn nhà hàng, thu gom rác thải đúng nơi quy định, phân loại rác hữu cơ/vô cơ.</li>
+        <li><strong>Quản lý hóa chất:</strong> Sử dụng và bảo quản hóa chất tẩy rửa an toàn, tiết kiệm, không để lẫn vào khu vực thực phẩm.</li>
+      </ul>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">III. QUY TRÌNH ĐẦU & CUỐI CA</div>
+      <ul>
+        <li>Đầu ca: Chuẩn bị đầy đủ dung dịch tẩy rửa, khăn lau, chổi, túi rác cho ca làm việc.</li>
+        <li>Cuối ca: Rửa sạch khu vực bồn rửa chén, tập kết toàn bộ túi rác ra điểm gom rác, lau khô sàn nhà trước khi về.</li>
+      </ul>
+    </div>
+
+    <div class="footer-sign">
+      <div class="sign-box"><strong>ĐẠI DIỆN QUẢN LÝ</strong>(Ký & ghi rõ họ tên)</div>
+      <div class="sign-box"><strong>NHÂN VIÊN TẠP VỤ</strong>(Ký & ghi rõ họ tên)</div>
+    </div>
+  </div>
+
+
+  <!-- TRANG 5: PHA CHẾ - THU NGÂN -->
+  <div class="page">
+    <div class="header-doc">
+      <h3>BẾP NHÀ - NỘI QUY & QUY TRÌNH LÀM VIỆC</h3>
+      <h1>BẢNG NỘI QUY & TRÁCH NHIỆM PHA CHẾ - THU NGÂN</h1>
+      <p>Áp dụng cho toàn thể nhân viên thuộc bộ phận Pha chế & Thu ngân</p>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">I. TÁC PHONG & ĐẠO ĐỨC NGHỀ NGHIỆP</div>
+      <ul>
+        <li>Trung thực, cẩn thận, chính xác tuyệt đối trong khâu kiểm đếm tiền bạc và nguyên liệu tài sản.</li>
+        <li>Mặc đồng phục đúng quy định, đeo tạp dề quầy bar, luôn tươi cười và trung thực khi giao tiếp với khách.</li>
+        <li>Không tự ý thối nhầm tiền, không gian lận doanh thu hay sử dụng đồ uống/nguyên liệu của quán khi chưa được phép.</li>
+      </ul>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">II. TRÁCH NHIỆM CHUYÊN MÔN</div>
+      <ul>
+        <li><strong>Thu ngân & Tính tiền:</strong> Nhập order, in hóa đơn chính xác. Thu tiền, quẹt thẻ, kiểm tra tiền thật/giả, thối lại tiền thừa chuẩn xác cho khách.</li>
+        <li><strong>Pha chế đồ uống:</strong> Pha chế các loại nước uống, bia, nước ngọt theo đúng định lượng, công thức và đảm bảo an toàn vệ sinh.</li>
+        <li><strong>Quản lý Két tiền:</strong> Chịu trách nhiệm hoàn toàn về số tiền trong két ca trực. Báo cáo ngay cho Quản lý nếu có chênh lệch tiền mặt.</li>
+        <li><strong>Kiểm kê nguyên liệu:</strong> Kiểm kê tồn kho bia, nước ngọt, trái cây, đá viên, ly cốc đầu ca và cuối ca. Lập phiếu đề xuất nhập hàng.</li>
+      </ul>
+    </div>
+
+    <div class="section-box">
+      <div class="section-title">III. QUY TRÌNH BÀN GIAO & KẾT CA</div>
+      <ul>
+        <li>Đầu ca: Kiểm tra tiền đô (tiền lẻ đầu ca), kiểm tra vệ sinh quầy pha chế và dụng cụ ly cốc.</li>
+        <li>Cuối ca: In báo cáo doanh thu ca, kiểm đếm tiền mặt, bàn giao quỹ tiền cho Quản lý/Ca sau, lau dọn sạch sẽ quầy bar.</li>
+      </ul>
+    </div>
+
+    <div class="footer-sign">
+      <div class="sign-box"><strong>ĐẠI DIỆN QUẢN LÝ</strong>(Ký & ghi rõ họ tên)</div>
+      <div class="sign-box"><strong>PHA CHẾ - THU NGÂN</strong>(Ký & ghi rõ họ tên)</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function exportPDF() {
+  const element = document.getElementById("pdf-content");
+  const options = {
+    margin:       0,
+    filename:     'Bảng_Nội_Quy_Trách_Nhiệm_Các_Bộ_Phận.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  
+  html2pdf().set(options).from(element).save();
+}
+</script>
+
+</body>
+</html>

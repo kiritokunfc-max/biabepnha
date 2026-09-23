@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Checklist Kiểm Kê - Phục Vụ / Quầy Bar</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { background: #f1f5f9; color: #1e293b; padding-bottom: 70px; font-size: 12px; }
+header { background: #1e3a8a; color: #fff; padding: 12px; position: sticky; top: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; }
+header h1 { font-size: 15px; font-weight: bold; }
+header p { font-size: 10px; color: #bfdbfe; }
+main { padding: 10px; max-width: 650px; margin: 0 auto; }
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.info-field label { font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 2px; }
+.info-field input, .info-field select { width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: bold; }
+.section-title { font-size: 13px; font-weight: bold; padding: 6px 8px; background: #eff6ff; color: #1d4ed8; border-left: 4px solid #1d4ed8; border-radius: 0 6px 6px 0; margin: 12px 0 8px 0; display: flex; justify-content: space-between; align-items: center; }
+
+/* Header Cột */
+.table-head-row { display: flex; align-items: center; padding: 6px 4px; font-size: 10px; font-weight: bold; background: #f8fafc; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; text-align: center; }
+.col-name { flex: 1; text-align: left; }
+.col-exist-group { width: 110px; color: #16a34a; border-left: 1px solid #e2e8f0; }
+.col-import-group { width: 110px; color: #dc2626; border-left: 1px solid #e2e8f0; }
+
+.check-item { display: flex; align-items: center; padding: 6px 4px; border-bottom: 1px dashed #e2e8f0; }
+.check-item:last-child { border-bottom: none; }
+.item-info { flex: 1; padding-right: 4px; }
+.item-name { font-weight: bold; font-size: 12px; }
+.item-unit { font-size: 10px; color: #64748b; }
+
+/* Khối Cột Tồn */
+.group-exist { width: 110px; display: flex; align-items: center; gap: 4px; padding: 0 4px; border-left: 1px solid #f1f5f9; }
+.group-exist input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #16a34a; flex-shrink: 0; }
+.group-exist input[type="number"] { width: 100%; padding: 4px; text-align: center; border: 1px solid #bbf7d0; border-radius: 4px; font-weight: bold; background: #f0fdf4; font-size: 12px; color: #166534; }
+
+/* Khối Cột Nhập */
+.group-import { width: 110px; display: flex; align-items: center; gap: 4px; padding: 0 4px; border-left: 1px solid #f1f5f9; }
+.group-import input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #dc2626; flex-shrink: 0; }
+.group-import input[type="number"] { width: 100%; padding: 4px; text-align: center; border: 1px solid #fecdd3; border-radius: 4px; font-weight: bold; background: #fff1f2; font-size: 12px; color: #9f1239; }
+
+.btn-add { background: #0284c7; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+.actions { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 8px 12px; border-top: 1px solid #cbd5e1; display: flex; gap: 8px; justify-content: center; z-index: 100; }
+.btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-align: center; color: white; }
+.btn-capture { background: #1d4ed8; }
+.btn-reset { background: #e11d48; flex: 0.3; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>BẾP NHÀ - CHECKLIST QUẦY / PHỤC VỤ</h1>
+    <p>Kiểm Kê Tồn & Báo Nhập Đồ Uống Đầu Ca</p>
+  </div>
+</header>
+
+<main id="capture-area">
+  <div class="card">
+    <div class="info-grid">
+      <div class="info-field">
+        <label>NGÀY KIỂM KÊ</label>
+        <input type="date" id="checkDate">
+      </div>
+      <div class="info-field">
+        <label>CA TRỰC</label>
+        <select id="shift">
+          <option value="Ca Sáng">Ca Sáng</option>
+          <option value="Ca Chiều/Tối">Ca Chiều / Tối</option>
+        </select>
+      </div>
+      <div class="info-field" style="grid-column: span 2;">
+        <label>NHÂN VIÊN QUẦY / PHỤC VỤ</label>
+        <input type="text" id="staffName" placeholder="Nhập tên nhân viên...">
+      </div>
+    </div>
+
+    <!-- 1. BIA & ĐỒ UỐNG -->
+    <div class="section-title">
+      <span>🍺 1. BIA & NƯỚC NGỌT các loại</span>
+      <button class="btn-add" onclick="addNewItem('group-drinks')">+ Thêm đồ uống</button>
+    </div>
+    <div class="table-head-row">
+      <div class="col-name">TÊN MẶT HÀNG</div>
+      <div class="col-exist-group">TỒN | SL TỒN</div>
+      <div class="col-import-group">NHẬP | SL NHẬP</div>
+    </div>
+    <div id="group-drinks"></div>
+
+    <!-- 2. NGUYÊN LIỆU TRÁI CÂY & NƯỚC ÉP -->
+    <div class="section-title">
+      <span>🍹 2. TRÁI CÂY & ĐỒ PHA CHẾ</span>
+      <button class="btn-add" onclick="addNewItem('group-bar')">+ Thêm mặt hàng</button>
+    </div>
+    <div class="table-head-row">
+      <div class="col-name">TÊN MẶT HÀNG</div>
+      <div class="col-exist-group">TỒN | SL TỒN</div>
+      <div class="col-import-group">NHẬP | SL NHẬP</div>
+    </div>
+    <div id="group-bar"></div>
+
+    <!-- 3. VẬT TƯ & ĐỒ DÙNG QUẦY -->
+    <div class="section-title">
+      <span>🧻 3. VẬT TƯ & ĐỒ DÙNG PHỤC VỤ</span>
+      <button class="btn-add" onclick="addNewItem('group-supplies')">+ Thêm vật tư</button>
+    </div>
+    <div class="table-head-row">
+      <div class="col-name">TÊN MẶT HÀNG</div>
+      <div class="col-exist-group">TỒN | SL TỒN</div>
+      <div class="col-import-group">NHẬP | SL NHẬP</div>
+    </div>
+    <div id="group-supplies"></div>
+
+    <div style="margin-top: 12px;">
+      <label style="font-size: 10px; font-weight: bold; color: #64748b;">GHI CHÚ / BÁO BỂ VỠ / ĐỀ XUẤT LẤY THÊM:</label>
+      <textarea id="note" rows="2" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; margin-top: 4px;" placeholder="Ví dụ: Vỡ 2 ly bia, hết khăn lạnh..."></textarea>
+    </div>
+  </div>
+</main>
+
+<div class="actions">
+  <button class="btn btn-reset" onclick="resetForm()">Xóa</button>
+  <button class="btn btn-capture" onclick="captureAndShare()">📸 Chụp Ảnh Báo Cáo Quầy</button>
+</div>
+
+<script>
+document.getElementById("checkDate").value = new Date().toISOString().split('T')[0];
+
+const drinks = [
+  ["Bia Hơi Hà Nội 1L", "Ca/Lít"], ["Bia Sài Gòn", "Lon"], ["Bia Heineken Lùn", "Lon"],
+  ["Bia Tiger Bạc Lùn", "Lon"], ["Bia Tiger Nâu", "Lon"], ["Bia Crown", "Chai"],
+  ["Bia Craft Lager", "Chai"], ["Bia Amber", "Chai"], ["Nước ngọt lon (Sting/Coca/7Up)", "Lon"],
+  ["Bò Húc", "Lon"], ["Nước suối", "Chai"]
+];
+
+const barItems = [
+  ["Trái cây ép (Dứa/Táo/Cam/Cà rốt)", "Kg"], ["Dừa tươi", "Trái"],
+  ["Sấu ngâm", "Hũ/Kg"], ["Mơ ngâm", "Hũ/Kg"], ["Đá viên", "Bao"]
+];
+
+const supplies = [
+  ["Ly/Cốc bia", "Cái"], ["Khăn lạnh", "Cái"], ["Ống hút", "Gói"],
+  ["Giấy ăn", "Gói"], ["Muỗng/Đũa dự phòng", "Bộ"]
+];
+
+function renderGroup(items, containerId) {
+  let html = "";
+  items.forEach(([name, unit], idx) => {
+    html += createItemRow(containerId, idx, name, unit);
+  });
+  document.getElementById(containerId).innerHTML = html;
+}
+
+function createItemRow(containerId, idx, name, unit) {
+  return `
+    <div class="check-item" id="item_${containerId}_${idx}">
+      <div class="item-info">
+        <div class="item-name">${name}</div>
+        <div class="item-unit">ĐVT: ${unit}</div>
+      </div>
+      <!-- Nhóm Tồn -->
+      <div class="group-exist">
+        <input type="checkbox" id="chk_exist_${containerId}_${idx}">
+        <input type="number" step="any" placeholder="SL tồn" id="qty_exist_${containerId}_${idx}" oninput="document.getElementById('chk_exist_${containerId}_${idx}').checked = this.value > 0;">
+      </div>
+      <!-- Nhóm Nhập -->
+      <div class="group-import">
+        <input type="checkbox" id="chk_import_${containerId}_${idx}">
+        <input type="number" step="any" placeholder="SL nhập" id="qty_import_${containerId}_${idx}" oninput="document.getElementById('chk_import_${containerId}_${idx}').checked = this.value > 0;">
+      </div>
+    </div>
+  `;
+}
+
+function addNewItem(containerId) {
+  let name = prompt("Nhập tên mặt hàng mới:");
+  if (!name) return;
+  let unit = prompt("Nhập đơn vị tính (Lon, Chai, Cái, Bao...):", "Lon");
+  if (!unit) unit = "Lon";
+  
+  let container = document.getElementById(containerId);
+  let idx = container.children.length + 1000;
+  container.insertAdjacentHTML('beforeend', createItemRow(containerId, idx, name, unit));
+}
+
+function init() {
+  renderGroup(drinks, "group-drinks");
+  renderGroup(barItems, "group-bar");
+  renderGroup(supplies, "group-supplies");
+}
+
+function resetForm() {
+  if (confirm("Bạn có chắc muốn xóa toàn bộ dữ liệu vừa nhập?")) {
+    document.querySelectorAll("input[type='number']").forEach(i => i.value = "");
+    document.querySelectorAll("input[type='checkbox']").forEach(c => c.checked = false);
+    document.getElementById("note").value = "";
+  }
+}
+
+function captureAndShare() {
+  const staff = document.getElementById("staffName").value.trim();
+  if (!staff) {
+    alert("Vui lòng nhập Tên nhân viên kiểm kê!");
+    return;
+  }
+  const target = document.getElementById("capture-area");
+  html2canvas(target, { scale: 2 }).then(canvas => {
+    const link = document.createElement("a");
+    const dateStr = document.getElementById("checkDate").value;
+    const shiftStr = document.getElementById("shift").value;
+    link.download = `KiemKe_QUAY_${shiftStr}_${dateStr}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    alert("Đã tải báo cáo kiểm kê Quầy! Hãy gửi ảnh cho Quản lý.");
+  });
+}
+
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
