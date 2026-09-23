@@ -1,1 +1,695 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bếp Nhà - Quản Lý & Công Thức Chuẩn Vị</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { background: #f1f5f9; color: #1e293b; padding-bottom: 40px; font-size: 13px; }
+header { background: #1e3a8a; color: #fff; padding: 12px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+header h1 { font-size: 15px; font-weight: bold; }
+header p { font-size: 10px; color: #bfdbfe; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.date-input { padding: 4px 6px; border-radius: 6px; border: none; font-size: 11px; font-weight: bold; }
+.btn-reset { background: #e11d48; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; }
+.btn-export { background: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; }
+nav { background: #fff; border-bottom: 1px solid #cbd5e1; position: sticky; top: 48px; z-index: 40; overflow-x: auto; white-space: nowrap; padding: 6px 8px; }
+.tab-btn { display: inline-block; padding: 8px 12px; margin-right: 4px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; color: #475569; font-size: 12px; font-weight: bold; cursor: pointer; }
+.tab-btn.active { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+main { padding: 10px; max-width: 800px; margin: 0 auto; }
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 12px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.title { font-size: 14px; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.kpi { padding: 8px; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; }
+.kpi-1 { background: #eff6ff; } .kpi-2 { background: #fffbeb; } .kpi-3 { background: #ecfdf5; }
+.kpi-label { font-size: 9px; color: #64748b; font-weight: bold; }
+.kpi-val { font-size: 14px; font-weight: bold; display: block; margin-top: 2px; }
+table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; }
+th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
+th { background: #f8fafc; font-weight: bold; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+input[type="number"], input[type="text"], select { padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; }
+input[type="number"] { width: 85px; text-align: center; font-weight: bold; background: #fffbeb; }
+.btn-save { background: #15803d; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+.item-card { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 8px; background: #fff; }
+.ing-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px dashed #f1f5f9; font-size: 11px; }
+.ing-sp { color: #d97706; font-weight: bold; }
+.recipe-section { background: #f8fafc; border-left: 3px solid #1d4ed8; padding: 10px; margin-top: 6px; border-radius: 0 6px 6px 0; font-size: 12px; line-height: 1.6; }
+.sauce-card { background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+.sauce-title { font-weight: bold; color: #15803d; font-size: 13px; margin-bottom: 6px; }
+</style>
+</head>
+<body>
 
+<header>
+  <div>
+    <h1>QUÁN BIA BẾP NHÀ</h1>
+    <p>Hệ Thống Quản Lý Doanh Số & Cost Bếp</p>
+  </div>
+  <div class="header-right">
+    <input type="date" id="workDate" class="date-input" onchange="onDateChange()">
+    <button onclick="resetData()" class="btn-reset">Reset</button>
+  </div>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="showTab(1)">1. Doanh Số</button>
+  <button class="tab-btn" onclick="showTab(2)">2. Tồn Kho</button>
+  <button class="tab-btn" onclick="showTab(3)">3. Đẩy Món</button>
+  <button class="tab-btn" onclick="showTab(4)">4. Định Lượng Thực Chiến</button>
+  <button class="tab-btn" onclick="showTab(5)">5. Công Thức Chuẩn Vị</button>
+  <button class="tab-btn" onclick="showTab(6)">6. Giá Chợ Theo Ngày</button>
+  <button class="tab-btn" onclick="showTab(7)">7. Lãi/Lỗ</button>
+</nav>
+
+<main>
+  <!-- TAB 1 -->
+  <div id="tab1" class="tab-content active card">
+    <div class="title">
+      <span>1. Doanh số bán hàng ngày</span>
+      <div>
+        <input type="text" id="srch" oninput="renderT1()" placeholder="Tìm món..." style="width: 90px;">
+        <button onclick="saveCurrentDateData()" class="btn-save">Lưu Số Liệu Ngày</button>
+      </div>
+    </div>
+    <div class="grid-3">
+      <div class="kpi kpi-1"><span class="kpi-label">MÓN BÁN</span><span id="kpiItems" class="kpi-val">0</span></div>
+      <div class="kpi kpi-2"><span class="kpi-label">SỐ LƯỢNG</span><span id="kpiQty" class="kpi-val">0</span></div>
+      <div class="kpi kpi-3"><span class="kpi-label">DOANH THU</span><span id="kpiRev" class="kpi-val" style="color: #047857;">0đ</span></div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Món ăn / Đồ uống</th><th class="text-right">Giá</th><th class="text-center">SL</th><th class="text-right">Thành tiền</th></tr>
+      </thead>
+      <tbody id="tb-sales"></tbody>
+    </table>
+  </div>
+
+  <!-- TAB 2 -->
+  <div id="tab2" class="tab-content card">
+    <div class="title">
+      <span>2. Tồn kho nguyên liệu & Gia vị</span>
+      <button onclick="saveCurrentDateData()" class="btn-save">Lưu Số Liệu Ngày</button>
+    </div>
+    <p style="font-size: 10px; color: #64748b; margin-bottom: 8px;">* NVL chính hiển thị quy đổi theo <b>phần</b>. Gia vị & NVL phụ hiển thị theo số thập phân chính xác (ĐVT nhập chợ).</p>
+    <table>
+      <thead>
+        <tr><th>Nguyên liệu / Gia vị</th><th>ĐVT</th><th class="text-center">Đầu</th><th class="text-center">Nhập Ngày</th><th class="text-center">Dùng</th><th class="text-center">Cuối</th></tr>
+      </thead>
+      <tbody id="tb-inv"></tbody>
+    </table>
+  </div>
+
+  <!-- TAB 3 -->
+  <div id="tab3" class="tab-content card">
+    <div class="title">3. Món cần đẩy doanh số</div>
+    <select id="pushFilter" onchange="renderT3()" style="margin-bottom: 10px; width: 100%;">
+      <option value="0">Chưa bán phần nào</option>
+      <option value="2">Bán dưới 2 phần</option>
+      <option value="5">Bán dưới 5 phần</option>
+    </select>
+    <div id="push-box"></div>
+  </div>
+
+  <!-- TAB 4 -->
+  <div id="tab4" class="tab-content card">
+    <div class="title">
+      <span>4. Định lượng & Gia vị thực chiến</span>
+      <button onclick="saveRecipes()" class="btn-save">Lưu Đ.Lượng</button>
+    </div>
+    <p style="font-size: 10px; color: #64748b; margin-bottom: 10px;">Có thể điều chỉnh định lượng nguyên liệu/gia vị từng món theo thực tế nhập bếp:</p>
+    <div id="recipe-box"></div>
+  </div>
+
+  <!-- TAB 5 -->
+  <div id="tab5" class="tab-content card">
+    <div class="title">
+      <span>5. Quy Trình Chế Biến & Sốt Nấu Nhanh Chuẩn Vị</span>
+      <input type="text" id="srchRecipe" oninput="renderT5_Recipe()" placeholder="Tìm món / sốt..." style="width: 120px;">
+    </div>
+    
+    <div style="margin-bottom: 16px;">
+      <h3 style="color:#15803d; font-size:14px; margin-bottom:8px; border-bottom: 2px solid #22c55e; padding-bottom: 4px;">
+        🥣 BỘ CÔNG THỨC CÁC LOẠI SỐT NẤU NHANH (NẤU SẴN)
+      </h3>
+      <div id="sauce-list-box"></div>
+    </div>
+
+    <h3 style="color:#1e3a8a; font-size:14px; margin-bottom:8px; border-bottom: 2px solid #3b82f6; padding-bottom: 4px;">
+      🍳 CÔNG THỨC THỰC CHIẾN TỪNG MÓN TRONG MENU
+    </h3>
+    <div id="cooking-guide-box"></div>
+  </div>
+
+  <!-- TAB 6 -->
+  <div id="tab6" class="tab-content card">
+    <div class="title">
+      <span>6. Giá chợ ngày nhập hàng</span>
+      <button onclick="saveCurrentDateData()" class="btn-save">Lưu Giá Ngày</button>
+    </div>
+    <p style="font-size: 10px; color: #64748b; margin-bottom: 8px;">* Điều chỉnh giá mua nhập theo thực tế ngày hôm nay. Giá sẽ tự động áp dụng cho tính Cost Lãi/Lỗ của ngày này.</p>
+    <table>
+      <thead>
+        <tr><th>Tên mặt hàng</th><th>ĐVT</th><th>Giá mua nhập ngày (đ)</th></tr>
+      </thead>
+      <tbody id="tb-prices"></tbody>
+    </table>
+  </div>
+
+  <!-- TAB 7 -->
+  <div id="tab7" class="tab-content card">
+    <div class="title">
+      <span>7. Báo cáo Lãi / Lỗ & Food Cost</span>
+      <button onclick="exportReport()" class="btn-export">In / Xuất Báo Cáo PDF</button>
+    </div>
+    <div class="grid-3">
+      <div class="kpi kpi-1"><span class="kpi-label">DOANH THU</span><span id="sum-rev" class="kpi-val" style="color: #1d4ed8;">0đ</span></div>
+      <div class="kpi kpi-2"><span class="kpi-label">FOOD COST</span><span id="sum-cost" class="kpi-val" style="color: #b91c1c;">0đ</span></div>
+      <div class="kpi kpi-3"><span class="kpi-label">LÃI GỘP</span><span id="sum-prof" class="kpi-val" style="color: #047857;">0đ</span></div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Món</th><th class="text-right">Giá bán</th><th class="text-center">SL</th><th class="text-right">Cost món</th><th class="text-right">Lãi gộp</th></tr>
+      </thead>
+      <tbody id="tb-profit"></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+document.getElementById("workDate").value = new Date().toISOString().split('T')[0];
+
+const initPrices = {
+  "Đậu hũ tươi": [2500, "miếng"], "Lòng heo": [70000, "kg"], "Trứng gà": [3000, "quả"], "Lá sung / Lá mơ": [15000, "kg"],
+  "Hến tươi": [40000, "kg"], "Bánh đa": [5000, "cái"], "Nem chua": [3500, "cái"], "Chả cá thác lác": [160000, "kg"],
+  "Dế mèn": [150000, "kg"], "Thịt heo ba chỉ": [90000, "kg"], "Mỡ heo": [30000, "kg"], "Sụn gà": [90000, "kg"],
+  "Ếch tươi": [80000, "kg"], "Thịt bò": [220000, "kg"], "Cá mặn": [120000, "kg"], "Khổ qua": [20000, "kg"],
+  "Heo rừng": [160000, "kg"], "Dồi trường": [180000, "kg"], "Dưa chua": [20000, "kg"], "Rau muống/lang": [15000, "kg"],
+  "Chà bông": [150000, "kg"], "Mì gói": [4000, "gói"], "Cơm trắng": [10000, "kg"],
+  "Khô cá chỉ vàng": [200000, "kg"], "Khô cá sặc bướm": [180000, "kg"], "Khô cá dứa": [220000, "kg"],
+  "Khô cá lóc cửng": [200000, "kg"], "Lạp vịt": [250000, "kg"], "Khô cá cơm": [160000, "kg"], "Khô mực Phú Quốc": [850000, "kg"],
+  "Thịt vịt": [65000, "kg"], "Mắm chao": [45000, "kg"], "Gà ta": [120000, "kg"], "Lá é / Sấu / Chuối": [30000, "kg"],
+  "Bia Hơi Hà Nội 1L": [40000, "lít"], "Bia Sài Gòn": [15000, "lon"], "Bia Heineken Lùn": [18000, "lon"],
+  "Bia Tiger Bạc Lùn": [16000, "lon"], "Bia Tiger Nâu": [16000, "lon"], "Bia Crown": [12000, "chai"],
+  "Bia Craft Lager": [18000, "chai"], "Bia Amber": [30000, "chai"], "Trái cây ép": [12000, "kg"],
+  "Dừa tươi": [12000, "trái"], "Sấu/Mơ ngâm": [30000, "hũ"], "Nước ngọt lon": [10000, "lon"], "Nước suối": [5000, "chai"],
+  "Dầu ăn": [35000, "lít"], "Bột ngọt": [45000, "kg"], "Muối": [10000, "kg"], "Đường": [22000, "kg"],
+  "Nước mắm": [35000, "lít"], "Tiêu xay": [180000, "kg"], "Hạt nêm": [55000, "kg"], "Tỏi/Hành": [40000, "kg"],
+  "Ớt tươi": [35000, "kg"], "Sa tế": [50000, "kg"], "Dầu hào": [40000, "kg"], "Xì dầu": [25000, "lít"], "Bột năng": [25000, "kg"]
+};
+
+const excludedFromPortion = [
+  "Dầu ăn", "Bột ngọt", "Muối", "Đường", "Nước mắm", "Tiêu xay", "Hạt nêm", 
+  "Tỏi/Hành", "Ớt tươi", "Sa tế", "Dầu hào", "Xì dầu", "Bột năng", "Mắm chao",
+  "Khổ qua", "Dưa chua", "Rau muống/lang", "Lá sung / Lá mơ", "Lá é / Sấu / Chuối"
+];
+
+const masterSauces = [
+  { 
+    name: "1. Sốt Tiêu Đen Chuẩn Vị", 
+    guide: "<b>Thành phần:</b> 100ml Xì dầu + 30g Dầu hào + 20g Đường + 10g Bột ngọt + 15g Tiêu xay + 30g Tỏi/Hành băm + 50ml Dầu ăn.\n<b>Cách làm:</b> Phi thơm tỏi hành với dầu ăn, cho toàn bộ xì dầu, dầu hào, đường, bột ngọt vào đun nhỏ lửa đến khi tan hết. Cuối cùng cho tiêu xay vào đảo đều rồi tắt bếp để nguội. Dùng cho các món bò xào, bò né." 
+  },
+  { 
+    name: "2. Sốt Xào Rau Đa Năng", 
+    guide: "<b>Thành phần:</b> 100ml Dầu hào + 50ml Nước mắm + 40g Hạt nêm + 30g Đường + 10g Bột ngọt + 100ml Nước lọc.\n<b>Cách làm:</b> Đun nhẹ hỗn hợp trên bếp cho gia vị tan đều. Sốt này dùng chuẩn cho các món rau muống xào, mì xào bò, lòng xào, dồi trường xào." 
+  },
+  { 
+    name: "3. Sốt Lẩu Chuối Đậu Cốt Riềng Mẻ Nghệ", 
+    guide: "<b>Thành phần:</b> 100g Nghệ tươi giã nhỏ + 150ml Mẻ chua ngấu + 50g Mắm tôm + 30ml Nước mắm + 20g Hạt nêm + 20g Bột ngọt + 40g Tỏi/Hành phi.\n<b>Cách làm:</b> Trộn đều nghệ, mẻ, mắm tôm và gia vị. Dùng làm cốt om lẩu ếch chuối đậu, lẩu ốc, lẩu ba chỉ vô cùng đậm đà chuẩn vị Bắc." 
+  },
+  { 
+    name: "4. Sốt Lẩu Vịt Nấu Chao Đậm Đà", 
+    guide: "<b>Thành phần:</b> 200g Mắm chao đỏ/trắng + 30g Đường + 15g Bột ngọt + 20ml Sa tế + 30g Tỏi băm phi thơm.\n<b>Cách làm:</b> Tán mịn viên chao, trộn đều cùng nước chao, đường, bột ngọt, sa tế và tỏi phi. Dùng để ướp thịt vịt và pha nước lẩu vịt nấu chao." 
+  },
+  { 
+    name: "5. Sốt Chiên Nước Mắm Kẹo", 
+    guide: "<b>Thành phần:</b> 100ml Nước mắm ngon + 100g Đường + 20g Sa tế + 10g Bột ngọt + 30g Tỏi băm.\n<b>Cách làm:</b> Đun nước mắm và đường trên lửa nhỏ cho đến khi keo sánh lại, cho sa tế và bột ngọt vào khuấy tan. Dùng cho Tóp mỡ chiên mắm, Ếch chiên mắm, Sụn gà chiên mắm." 
+  },
+  { 
+    name: "6. Sốt Mắm Me Chấm Khô Cá", 
+    guide: "<b>Thành phần:</b> 100g Cốt me + 150g Đường + 80ml Nước mắm + 20g Ớt băm + 20g Tỏi phi.\n<b>Cách làm:</b> Nấu cốt me với đường và nước mắm cho kẹo lại, để nguội trộn ớt tươi và tỏi phi. Chuyên dùng chấm các món khô cá chỉ vàng, khô sặc, khô lóc." 
+  },
+  { 
+    name: "7. Sốt Muối Ớt Xanh Chấm Hải Sản", 
+    guide: "<b>Thành phần:</b> 50g Ớt xiêm xanh + 50g Muối hạt + 100g Đường + 50g Bột ngọt + 100ml Nước cốt tắc + 5 chiếc Lá chanh.\n<b>Cách làm:</b> Cho tất cả vào máy sinh tố xay nhuyễn sánh mịn. Bảo quản tủ mát chấm ếch, gà, đồ nướng." 
+  },
+  { 
+    name: "8. Sốt Kho Quẹt Chuẩn Mịn Đậm Đà", 
+    guide: "<b>Thành phần:</b> 100ml Nước mắm + 80g Đường + 30ml Xì dầu + 10g Tiêu hạt đập dập + 20g Sa tế + 50g Tóp mỡ.\n<b>Cách làm:</b> Đun nhỏ lửa nước mắm, đường, xì dầu cho sánh kẹo, cho tiêu hạt, sa tế và tóp mỡ vào đun thêm 3 phút." 
+  }
+];
+
+const rawRecipes = [
+  ["Đậu Chiên Giòn", 39000, [["Đậu hũ tươi", 3], ["Dầu ăn", .05], ["Nước mắm", .01], ["Tỏi/Hành", .01]], "Đậu hũ cắt miếng vuông vừa ăn. Đun dầu ăn nóng già, cho đậu vào chiên ngập dầu đến khi vàng giòn vỏ ngoài. Vớt ra để ráo dầu, dọn ăn kèm nước mắm tỏi ớt."],
+  ["Đậu Lướt", 39000, [["Đậu hũ tươi", 3], ["Dầu ăn", .03], ["Nước mắm", .01]], "Đậu hũ tươi thái miếng chữ nhật dài. Cho vào chảo dầu nóng chiên lướt nhanh để vỏ ngoài vừa xém nhẹ nhưng bên trong vẫn giữ độ mềm béo ngậy."],
+  ["Đậu Tấm Hành", 49000, [["Đậu hũ tươi", 3], ["Dầu ăn", .04], ["Tỏi/Hành", .03], ["Nước mắm", .015], ["Đường", .005]], "Đậu chiên giòn. Hành lá cắt nhỏ làm mỡ hành nóng. Đậu vừa chiên xong nhúng ngay vào bát mỡ hành nước mắm đường rồi xếp ra đĩa."],
+  ["Lòng Xào Nghệ", 59000, [["Lòng heo", .2], ["Dầu ăn", .02], ["Nước mắm", .01], ["Hạt nêm", .005], ["Tỏi/Hành", .015], ["Tiêu xay", .002]], "Lòng heo làm sạch, chần sơ cắt khúc. Phi thơm hành tỏi và nghệ tươi giã nhỏ, cho lòng vào xào lửa lớn, nêm nước mắm, hạt nêm, tiêu xay vừa vị."],
+  ["Trứng Rán Lá Mơ", 79000, [["Trứng gà", 3], ["Lá sung / Lá mơ", .05], ["Dầu ăn", .02], ["Nước mắm", .01], ["Hạt nêm", .005]], "Lá mơ rửa sạch thái sợi nhỏ. Đánh đều 3 quả trứng gà cùng lá mơ, nước mắm, hạt nêm. Rán trên chảo chống dính lửa nhỏ cho chín đều 2 mặt."],
+  ["Nem Lá Sung", 79000, [["Nem chua", 6], ["Lá sung / Lá mơ", .1], ["Tỏi/Hành", .01], ["Ớt tươi", .01]], "Nem chua bóc vỏ, thái miếng vừa ăn hoặc giữ nguyên chiếc. Xếp ra đĩa ăn kèm lá sung rửa sạch, tỏi tép và ớt tươi chấm tương ớt."],
+  ["Hến Xúc Bánh Đa", 79000, [["Hến tươi", .18], ["Bánh đa", 2], ["Dầu ăn", .02], ["Nước mắm", .01], ["Hạt nêm", .005], ["Tỏi/Hành", .015]], "Hến tươi luộc tách vỏ. Phi thơm hành tỏi băm, cho hến vào xào săn cùng nước mắm, hạt nêm, rau răm thái nhỏ. Bánh đa nướng giòn xúc ăn kèm."],
+  ["Nem Chua Rán", 89000, [["Nem chua", 8], ["Dầu ăn", .05], ["Bột năng", .02]], "Nem chua lăn qua một lớp bột năng mỏng. Cho vào chảo dầu nóng chiên ngập dầu đến khi vỏ ngoài vàng giòn phồng đậy. Ráo dầu dọn cùng tương ớt."],
+  ["Cá Thác Lác Chiên Giòn", 89000, [["Chả cá thác lác", .2], ["Dầu ăn", .04], ["Hạt nêm", .005], ["Tiêu xay", .003]], "Chả cá quết kỹ với hạt nêm, tiêu xay và chút dầu ăn cho dẻo dai. Nặn viên tròn ấn hơi dẹt, chiên vàng đều 2 mặt trên lửa vừa."],
+  ["Dế Rang Lá Chanh", 89000, [["Dế mèn", .15], ["Dầu ăn", .02], ["Nước mắm", .01], ["Tỏi/Hành", .015], ["Tiêu xay", .002]], "Dế mèn sơ chế sạch, chiên sơ cho giòn. Phi thơm hành tỏi, cho dế vào rang săn cùng nước mắm, tiêu xay, cuối cùng rắc lá chanh thái sợi."],
+  ["Thịt Đốt", 99000, [["Thịt heo ba chỉ", .25], ["Dầu ăn", .02], ["Nước mắm", .015], ["Đường", .01], ["Tỏi/Hành", .02]], "Thịt ba chỉ thái miếng dày vừa. Ướp nước mắm, đường, hành tỏi băm. Cho vào chảo rang cháy cạnh đến khi lên màu mắm đường thơm ngon."],
+  ["Tứ Sắc", 139000, [["Thịt heo ba chỉ", .15], ["Lòng heo", .15], ["Trứng gà", 2], ["Tỏi/Hành", .02]], "Món tổng hợp gồm thịt ba chỉ cháy cạnh, lòng heo xào, trứng chiên lá mơ và nem chua. Bày biện đẹp mắt 4 góc đĩa."],
+  ["Tóp Mỡ Chiên Nước Mắm", 69000, [["Mỡ heo", .3], ["Dầu ăn", .01], ["Nước mắm", .02], ["Đường", .015], ["Bột ngọt", .003], ["Tỏi/Hành", .02]], "Mỡ heo thắng lấy tóp mỡ giòn. Phi thơm tỏi ớt, đảo tóp mỡ với 2 thìa Sốt Chiên Nước Mắm Kẹo (Mục 5) đến khi áo đều một lớp gia vị bóng đẹp."],
+  ["Sụn Gà Rang Lá Chanh", 79000, [["Sụn gà", .22], ["Dầu ăn", .04], ["Hạt nêm", .005], ["Muối", .003], ["Tỏi/Hành", .015]], "Sụn gà luộc sơ, chần qua bột năng rồi chiên giòn. Rang khô trên chảo với muối hạt đập dập, hạt nêm, tỏi phi và lá chanh thái nhỏ."],
+  ["Ếch Núp Lùm", 89000, [["Ếch tươi", .25], ["Dầu ăn", .05], ["Bột năng", .03], ["Hạt nêm", .005]], "Thịt ếch chặt miếng tẩm bột năng chiên giòn. Sả sợi xé nhỏ tẩm bột chiên phồng xù tạo thành lớp lùm phù bao phủ lên đĩa ếch chiên."],
+  ["Ếch Chiên Nước Mắm", 89000, [["Ếch tươi", .25], ["Dầu ăn", .05], ["Nước mắm", .02], ["Đường", .015], ["Tỏi/Hành", .02]], "Thịt ếch tẩm bột chiên vàng giòn. Phi thơm tỏi băm, đảo ếch chiên với Sốt Chiên Nước Mắm Kẹo (Mục 5) lửa lớn đến khi cạn sệt thơm ngon."],
+  ["Sụn Gà Chiên Nước Mắm", 89000, [["Sụn gà", .25], ["Dầu ăn", .05], ["Nước mắm", .02], ["Đường", .015], ["Tỏi/Hành", .02]], "Sụn gà luộc chần bột chiên giòn ráo dầu. Phi tỏi băm thơm, trút sụn gà và Sốt Chiên Nước Mắm Kẹo vào đảo nhanh tay đến khi keo lại."],
+  ["Mì Xào Bò", 89000, [["Mì gói", 2], ["Thịt bò", .1], ["Rau muống/lang", .1], ["Dầu ăn", .025], ["Dầu hào", .01], ["Xì dầu", .01]], "Mì gói trần sơ. Xào thịt bò lửa lớn vừa chín tới trút ra. Xào rau muống với Sốt Xào Rau Đa Năng (Mục 2), cho mì và thịt bò vào đảo đều."],
+  ["Cơm Chiên Tỏi Trứng", 89000, [["Cơm trắng", .3], ["Trứng gà", 2], ["Dầu ăn", .03], ["Hạt nêm", .008], ["Tỏi/Hành", .02]], "Cơm nguội trộn đều 1 lòng đỏ trứng. Phi tỏi băm vàng thơm, trút cơm vào rang săn trên lửa lớn, nêm hạt nêm và đánh thêm 1 trứng gà đảo đều."],
+  ["Cơm Chiên Cá Mặn", 99000, [["Cơm trắng", .3], ["Cá mặn", .05], ["Trứng gà", 1], ["Dầu ăn", .03], ["Tỏi/Hành", .02]], "Cá mặn nướng xé sợi nhỏ phi thơm với tỏi. Rang cơm săn giòn cùng trứng gà, cá mặn, nêm chút hạt nêm và hành lá thái nhỏ."],
+  ["Cơm Chiên Dưa Bò", 109000, [["Cơm trắng", .3], ["Thịt bò", .1], ["Dưa chua", .1], ["Trứng gà", 1], ["Dầu ăn", .03], ["Xì dầu", .015]], "Thịt bò xào mềm với dưa chua trút ra để riêng. Rang cơm trứng tỏi vàng giòn. Trút thịt bò dưa chua vào đảo chung trên lửa lớn xém cạnh."],
+  ["Bò Xào Củ Hành", 109000, [["Thịt bò", .18], ["Tỏi/Hành", .08], ["Dầu ăn", .025], ["Dầu hào", .015], ["Tiêu xay", .003]], "Thịt bò thái mỏng ướp tỏi tiêu dầu ăn. Phi tỏi, xào thịt bò chín tới, trút hành tây thái múi cau vào đảo nhanh với Sốt Tiêu Đen (Mục 1)."],
+  ["Bò Xào Khổ Qua", 119000, [["Thịt bò", .18], ["Khổ qua", .15], ["Dầu ăn", .025], ["Dầu hào", .015], ["Tỏi/Hành", .02]], "Khổ qua bào mỏng ngâm đá giòn. Phi tỏi thơm xào thịt bò chín tái trút ra, tiếp tục xào khổ qua chín tới rồi trút bò vào đảo chung."],
+  ["Heo Rừng Xối Xả", 139000, [["Heo rừng", .25], ["Dầu ăn", .03], ["Sa tế", .015], ["Tỏi/Hành", .03], ["Nước mắm", .015]], "Thịt heo rừng thái mỏng ướp sa tế, nước mắm, tỏi. Sả bào mỏng phi giòn ráo dầu. Xào thịt heo rừng chín tới lửa lớn, trút sả phi lên trên."],
+  ["Dồi Trường Xào Cải Chua", 149000, [["Dồi trường", .22], ["Dưa chua", .15], ["Dầu ăn", .025], ["Nước mắm", .015], ["Tỏi/Hành", .02]], "Dồi trường luộc gừng sả cắt khúc. Phi tỏi thơm xào dưa chua săn lại, trút dồi trường vào đảo cùng Sốt Xào Đa Năng (Mục 2) lửa lớn."],
+  ["Rau Muống Xào Tỏi", 39000, [["Rau muống/lang", .3], ["Tỏi/Hành", .03], ["Dầu ăn", .025], ["Hạt nêm", .008]], "Rau muống luộc sơ nước sôi ngâm đá. Phi tỏi đập dập vàng thơm, trút rau muống vào đảo lửa lớn cùng 1 thìa Sốt Xào Rau Đa Năng (Mục 2)."],
+  ["Rau Lang Xào Mẻ", 39000, [["Rau muống/lang", .3], ["Tỏi/Hành", .02], ["Dầu ăn", .025], ["Hạt nêm", .008]], "Rau lang chần sơ. Phi thơm tỏi, trút rau lang vào đảo nhanh tay cùng mẻ chua đã lọc mịn, hạt nêm vừa ăn đến khi rau chín xanh béo."],
+  ["Khổ Qua Chà Bông", 49000, [["Khổ qua", .2], ["Chà bông", .04]], "Khổ qua rửa sạch bào mỏng, ướp trên thau đá lạnh cho giòn bớt đắng. Xếp ra đĩa, phủ lớp chà bông heo tơi xốp lên trên ăn kèm."],
+  ["Khô Cá Chỉ Vàng", 69000, [["Khô cá chỉ vàng", .12], ["Dầu ăn", .01]], "Cá chỉ vàng nướng than hoa hoặc nướng nồi chiên không dầu/áp chảo lửa nhỏ đến khi chín thơm phức. Dọn kèm Sốt Mắm Me (Mục 6)."],
+  ["Khô Cá Sặc Bướm", 69000, [["Khô cá sặc bướm", .12], ["Dầu ăn", .01]], "Khô cá sặc bướm chiên vàng giòn trong dầu nhỏ lửa. Vớt ra để ráo dầu, dùng kèm tương ớt hoặc Sốt Mắm Me."],
+  ["Khô Cá Dứa Một Nắng", 79000, [["Khô cá dứa", .15], ["Dầu ăn", .02]], "Khô cá dứa cắt miếng vừa ăn, chiên áp chảo lửa vừa cho giòn đều phần da và chín thơm phần thịt. Dọn ăn kèm đồ chua và tương ớt."],
+  ["Khô Cá Lóc Cửng", 89000, [["Khô cá lóc cửng", .15], ["Dầu ăn", .02]], "Khô cá lóc nướng hoặc chiên giòn, đập dập xé sợi vừa ăn. Dọn chấm Sốt Mắm Me Chuẩn Vị (Mục 6)."],
+  ["Lạp Vịt", 89000, [["Lạp vịt", .15], ["Dầu ăn", .01]], "Lạp vịt luộc lăn chảo với chút nước lọc cho chín tự ra mỡ vàng ươm. Thái mỏng lát xéo dọn ra đĩa."],
+  ["Khô Cá Cơm Chiên Nước Mắm", 99000, [["Khô cá cơm", .15], ["Dầu ăn", .03], ["Nước mắm", .015], ["Đường", .01]], "Cá cơm chiên giòn ráo dầu. Phi thơm tỏi ớt, trút cá cơm vào đảo nhanh với Sốt Chiên Nước Mắm Kẹo (Mục 5) đến khi áo đều lớp mắm đường kẹo."],
+  ["Khô Mực Phú Quốc", 199000, [["Khô mực Phú Quốc", .15]], "Khô mực nướng cồn hoặc nướng than hoa vừa chín tới. Dùng cầy đập dập cho mềm xốp rồi xé sợi nhỏ, dọn ăn kèm tương ớt tỏi."],
+  ["Lẩu Vịt Nấu Chao (Nhỏ)", 179000, [["Thịt vịt", .5], ["Mắm chao", .05], ["Lá é / Sấu / Chuối", .1], ["Tỏi/Hành", .02]], "Thịt vịt chặt miếng ướp Sốt Lẩu Vịt Nấu Chao (Mục 4). Xào săn thịt vịt, châm nước dừa/nước dùng đun sôi. Ăn kèm khoai môn, rau muống, bún."],
+  ["Lẩu Vịt Nấu Chao (Lớn)", 279000, [["Thịt vịt", .9], ["Mắm chao", .08], ["Lá é / Sấu / Chuối", .2], ["Tỏi/Hành", .03]], "Thịt vịt khẩu phần lớn ướp Sốt Chao (Mục 4). Xào săn thịt vịt, châm nước dừa tươi đun sôi nhúng rau muống, nấm, khoai môn và bún tươi."],
+  ["Lẩu Ếch Chuối Đậu (Nhỏ)", 179000, [["Ếch tươi", .4], ["Đậu hũ tươi", 3], ["Lá é / Sấu / Chuối", .2], ["Tỏi/Hành", .02]], "Ếch chiên sơ. Chuối tước vỏ cắt khúc chần nghệ. Xào ếch, chuối, đậu với Sốt Cốt Riềng Mẻ Nghệ (Mục 3), châm nước dùng lẩu đun om đậm đà."],
+  ["Lẩu Ếch Chuối Đậu (Lớn)", 279000, [["Ếch tươi", .7], ["Đậu hũ tươi", 5], ["Lá é / Sấu / Chuối", .3], ["Tỏi/Hành", .03]], "Ếch chặt miếng chiên săn. Om ếch, đậu hũ, chuối xanh cùng Sốt Lẩu Riềng Mẻ Nghệ (Mục 3), bổ sung nước dùng đun sôi ăn kèm lá lốt, tía tía."],
+  ["Lẩu Gà Lá É (Nhỏ)", 179000, [["Gà ta", .5], ["Lá é / Sấu / Chuối", .15], ["Tỏi/Hành", .02]], "Gà ta chặt miếng vừa ăn. Phi thơm ớt giã cùng tỏi hành, xào săn thịt gà. Châm nước dùng ngọt thanh đun sôi, nhúng lá é tươi và măng chua."],
+  ["Lẩu Gà Lá É (Lớn)", 279000, [["Gà ta", .9], ["Lá é / Sấu / Chuối", .25], ["Tỏi/Hành", .03]], "Gà ta phần lớn xào săn với gia vị ớt giã. Châm nước lẩu ninh từ xương ngọt thanh, dọn kèm lá é trắng tươi, măng củ đập dập và bún."],
+  ["Bia Hơi Hà Nội 1L", 65000, [["Bia Hơi Hà Nội 1L", 1]], "Chiết bia từ ca ướp lạnh ra ca 1L giữ nhiệt. Phục vụ kèm cốc thủy tinh ngâm đá."],
+  ["Sài Gòn", 23000, [["Bia Sài Gòn", 1]], "Bia lon ướp lạnh 2-4 độ C. Dọn kèm ly đá."],
+  ["Heniken Lùn", 23000, [["Bia Heineken Lùn", 1]], "Bia lon ướp lạnh. Dọn kèm ly đá."],
+  ["Tiger Bạc Lùn", 22000, [["Bia Tiger Bạc Lùn", 1]], "Bia lon ướp lạnh. Dọn kèm ly đá."],
+  ["Tiger Nâu", 23000, [["Bia Tiger Nâu", 1]], "Bia lon ướp lạnh. Dọn kèm ly đá."],
+  ["Crown", 19000, [["Bia Crown", 1]], "Bia chai ướp lạnh. Dọn kèm ly đá và khui chai."],
+  ["Craf Lager", 27000, [["Bia Craft Lager", 1]], "Bia thủ công chai lạnh 4 độ C. Dọn ly thủy tinh chuyên dụng."],
+  ["Amber", 49000, [["Bia Amber", 1]], "Bia chai thủ công Amber mát lạnh. Dọn ly bia cao."],
+  ["Nước Ép Thơm", 25000, [["Trái cây ép", .25]], "Ép dứa tươi lấy 250ml nước cốt, thêm chút đường và đá viên khuấy đều."],
+  ["Nước Ép Táo", 25000, [["Trái cây ép", .25]], "Ép táo tươi 250ml, thêm vài giọt chanh chống thâm, vắt đá uống lạnh."],
+  ["Nước Ép Cam", 22000, [["Trái cây ép", .25]], "Vắt 250ml nước cam tươi, pha đường lắc đá mút."],
+  ["Nước Ép Cà Rốt", 25000, [["Trái cây ép", .25]], "Ép cà rốt tươi 250ml lấy nước cốt pha đá đường thanh mát."],
+  ["Dừa Trọc", 20000, [["Dừa tươi", 1]], "Dừa gọt vỏ ướp lạnh sẵn, chặt mút cắm ống hút."],
+  ["Sấu Ngâm Hà Nội", 25000, [["Sấu/Mơ ngâm", .05]], "Pha 50ml cốt sấu ngâm + 100ml nước lọc + đá viên và 2 quả sấu dầm."],
+  ["Mơ Ngâm Hà Nội", 25000, [["Sấu/Mơ ngâm", .05]], "Pha 50ml cốt mơ ngâm + 100ml nước lọc + đá lạnh khuấy sảng khoái."],
+  ["Sting / Coca / 7 Up", 20000, [["Nước ngọt lon", 1]], "Ướp lạnh dọn kèm ly đá."],
+  ["Bò Húc", 25000, [["Nước ngọt lon", 1]], "Ướp lạnh dọn kèm ly đá."],
+  ["Nước suối", 15000, [["Nước suối", 1]], "Chai 500ml ướp lạnh sẵn."]
+];
+
+let recipes = JSON.parse(localStorage.getItem("bn_recipes_v7") || "null");
+if (!recipes) {
+  recipes = rawRecipes.map((x, i) => ({
+    id: i + 1, name: x[0], price: x[1], ings: x[2], guide: x[3]
+  }));
+}
+
+let dailyData = JSON.parse(localStorage.getItem("bn_daily_v7") || "{}");
+let currentSales = { items: {} };
+let stockIn = {};
+let currentPrices = {};
+
+function getLatestPricesBefore(dateVal) {
+  let defaultP = {};
+  Object.entries(initPrices).forEach(([k, v]) => defaultP[k] = { price: v[0], unit: v[1] });
+  
+  let prevDates = Object.keys(dailyData).filter(d => d <= dateVal && dailyData[d]?.prices).sort();
+  if (prevDates.length > 0) {
+    let lastDate = prevDates[prevDates.length - 1];
+    return JSON.parse(JSON.stringify(dailyData[lastDate].prices));
+  }
+  return defaultP;
+}
+
+function loadDateData() {
+  let dateVal = document.getElementById("workDate").value;
+  if (!dailyData[dateVal]) {
+    dailyData[dateVal] = { 
+      sales: { items: {} }, 
+      stockIn: {},
+      prices: getLatestPricesBefore(dateVal)
+    };
+  }
+  currentSales = dailyData[dateVal].sales || { items: {} };
+  stockIn = dailyData[dateVal].stockIn || {};
+  currentPrices = dailyData[dateVal].prices || getLatestPricesBefore(dateVal);
+}
+
+function saveCurrentDateData() {
+  let dateVal = document.getElementById("workDate").value;
+  dailyData[dateVal] = {
+    sales: currentSales,
+    stockIn: stockIn,
+    prices: currentPrices
+  };
+  localStorage.setItem("bn_daily_v7", JSON.stringify(dailyData));
+  alert(`Đã lưu thành công dữ liệu ngày: ${dateVal}`);
+  renderAll();
+}
+
+function onDateChange() {
+  loadDateData();
+  renderAll();
+}
+
+function getPortionRatio(itemKey) {
+  if (excludedFromPortion.includes(itemKey)) return 1;
+  let totalQty = 0, count = 0;
+  recipes.forEach(r => {
+    r.ings.forEach(([n, q]) => {
+      if (n === itemKey) {
+        totalQty += q;
+        count++;
+      }
+    });
+  });
+  return count > 0 ? (totalQty / count) : 1;
+}
+
+const money = n => new Intl.NumberFormat("vi-VN").format(Math.round(n)) + "đ";
+const cost = r => r.ings.reduce((s, [n, q]) => s + q * (currentPrices[n]?.price || 0), 0);
+
+// Hàm định dạng số hiển thị linh hoạt (giữ tối đa 3 chữ số thập phân cho gia vị)
+function formatNum(num) {
+  if (Math.abs(num) < 0.0001) return "0";
+  return Number(num.toFixed(3)).toString();
+}
+
+function showTab(num) {
+  for (let i = 1; i <= 7; i++) {
+    const el = document.getElementById("tab" + i);
+    if (el) el.classList.remove("active");
+  }
+  const target = document.getElementById("tab" + num);
+  if (target) target.classList.add("active");
+  
+  const btns = document.querySelectorAll(".tab-btn");
+  btns.forEach((btn, idx) => {
+    if (idx + 1 === num) btn.classList.add("active");
+    else btn.classList.remove("active");
+  });
+  renderAll();
+}
+
+function saveRecipes() {
+  localStorage.setItem("bn_recipes_v7", JSON.stringify(recipes));
+  alert("Đã lưu định lượng công thức!");
+  renderAll();
+}
+
+function renderT1() {
+  let q = (document.getElementById("srch")?.value || "").toLowerCase(), rev = 0, qty = 0, items = 0, html = "";
+  recipes.forEach(r => {
+    if (q && !r.name.toLowerCase().includes(q)) return;
+    let s = Math.round(Number(currentSales.items[r.id] || 0));
+    if (s) { items++; qty += s; rev += r.price * s; }
+    html += `<tr>
+      <td><b>${r.name}</b></td>
+      <td class="text-right">${money(r.price)}</td>
+      <td class="text-center">
+        <input type="number" min="0" step="1" value="${s}" onchange="currentSales.items[${r.id}]=Math.max(0,Math.round(Number(this.value)));renderAll()">
+      </td>
+      <td class="text-right" style="font-weight:bold; color:#1d4ed8;">${money(r.price * s)}</td>
+    </tr>`;
+  });
+  if (document.getElementById("tb-sales")) document.getElementById("tb-sales").innerHTML = html;
+  if (document.getElementById("kpiItems")) document.getElementById("kpiItems").textContent = Math.round(items);
+  if (document.getElementById("kpiQty")) document.getElementById("kpiQty").textContent = Math.round(qty);
+  if (document.getElementById("kpiRev")) document.getElementById("kpiRev").textContent = money(rev);
+}
+
+function getPreviousEndStock(itemKey, currentDate) {
+  let allDates = Object.keys(dailyData).filter(d => d < currentDate).sort();
+  if (allDates.length === 0) return 0;
+
+  let totalStock = 0;
+  for (let d of allDates) {
+    let daySales = dailyData[d]?.sales?.items || {};
+    let dayStockIn = dailyData[d]?.stockIn || {};
+    
+    let usedInDay = 0;
+    recipes.forEach(r => {
+      let s = Math.round(Number(daySales[r.id] || 0));
+      r.ings.forEach(([n, q]) => {
+        if (n === itemKey) usedInDay += q * s;
+      });
+    });
+
+    let inDay = Number(dayStockIn[itemKey] || 0);
+    totalStock += inDay - usedInDay;
+  }
+  return Math.max(0, totalStock);
+}
+
+function renderT2() {
+  let currentDate = document.getElementById("workDate").value;
+  let usedRaw = {};
+  
+  recipes.forEach(r => {
+    let s = Math.round(Number(currentSales.items[r.id] || 0));
+    r.ings.forEach(([n, q]) => usedRaw[n] = (usedRaw[n] || 0) + q * s);
+  });
+
+  let html = "";
+  Object.entries(currentPrices).forEach(([n, v]) => {
+    let ratio = getPortionRatio(n);
+    let isPortion = !excludedFromPortion.includes(n);
+    let unitDisplay = isPortion ? "phần" : v.unit;
+
+    let initRaw = getPreviousEndStock(n, currentDate);
+    let inRaw = Number(stockIn[n] || 0);
+    let uRaw = usedRaw[n] || 0;
+    let endRaw = initRaw + inRaw - uRaw;
+
+    // Nếu hiển thị theo phần (món chính) thì làm tròn số nguyên, còn gia vị/NVL phụ giữ nguyên số thập phân chính xác
+    let initDisplay = isPortion ? Math.round(initRaw / ratio) : formatNum(initRaw);
+    let inDisplay = isPortion ? Math.round(inRaw / ratio) : formatNum(inRaw);
+    let usedDisplay = isPortion ? Math.round(uRaw / ratio) : formatNum(uRaw);
+    let endDisplay = isPortion ? Math.round(endRaw / ratio) : formatNum(endRaw);
+
+    html += `<tr>
+      <td><b>${n}</b></td>
+      <td><span style="${isPortion ? 'color:#15803d; font-weight:bold;' : ''}">${unitDisplay}</span></td>
+      <td class="text-center" style="background:#f8fafc; font-weight:bold;">${initDisplay}</td>
+      <td class="text-center">
+        <input type="number" step="${isPortion ? '1' : '0.001'}" value="${inDisplay}" onchange="stockIn['${n}']=Number(this.value)*${ratio};renderT2()">
+      </td>
+      <td class="text-center" style="color:#b91c1c;">-${usedDisplay}</td>
+      <td class="text-center" style="font-weight:bold; ${endRaw < 0 ? 'color:#b91c1c;' : 'color:#15803d;'}">${endDisplay}</td>
+    </tr>`;
+  });
+  if (document.getElementById("tb-inv")) document.getElementById("tb-inv").innerHTML = html;
+}
+
+function renderT3() {
+  let lim = Number(document.getElementById("pushFilter")?.value || 0), html = "";
+  recipes.forEach(r => {
+    let s = Math.round(Number(currentSales.items[r.id] || 0));
+    if (s <= lim) {
+      html += `<div class="item-card" style="display:flex; justify-content:space-between; align-items:center;">
+        <div><b>${r.name}</b><br><span style="font-size:11px; color:#64748b;">Đã bán: ${s} phần</span></div>
+        <span style="font-weight:bold; color:#d97706;">${money(r.price)}</span>
+      </div>`;
+    }
+  });
+  if (document.getElementById("push-box")) document.getElementById("push-box").innerHTML = html || '<div style="color:#64748b;">Không có món nào.</div>';
+}
+
+function renderT4() {
+  const elRec = document.getElementById("recipe-box");
+  if (elRec) {
+    elRec.innerHTML = recipes.map((r, rIdx) => `
+      <div class="item-card">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <b style="color:#1e3a8a; font-size:13px;">${r.name}</b>
+          <span style="background:#ffe4e6; color:#be123c; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:11px;">Cost: ${money(cost(r))}</span>
+        </div>
+        ${r.ings.map(([n, q], iIdx) => `
+          <div class="ing-row">
+            <span class="${excludedFromPortion.includes(n) ? 'ing-sp' : ''}">${n}</span>
+            <div>
+              <input type="number" step="0.001" value="${q}" onchange="recipes[${rIdx}].ings[${iIdx}][1]=Math.max(0,Number(this.value));renderT4()" style="width:85px; text-align:center;">
+              <span style="font-size:10px; color:#64748b;">${currentPrices[n]?.unit || ''}</span>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `).join("");
+  }
+}
+
+function renderT5_Recipe() {
+  let q = (document.getElementById("srchRecipe")?.value || "").toLowerCase();
+  
+  const elSauceBox = document.getElementById("sauce-list-box");
+  if (elSauceBox) {
+    elSauceBox.innerHTML = masterSauces.filter(s => !q || s.name.toLowerCase().includes(q) || s.guide.toLowerCase().includes(q)).map(s => `
+      <div class="sauce-card">
+        <div class="sauce-title">${s.name}</div>
+        <div style="font-size:12px; line-height:1.6; color:#1e293b;">${s.guide.replace(/\n/g, '<br>')}</div>
+      </div>
+    `).join("");
+  }
+
+  const elBox = document.getElementById("cooking-guide-box");
+  if (elBox) {
+    elBox.innerHTML = recipes.filter(r => !q || r.name.toLowerCase().includes(q)).map(r => `
+      <div class="item-card">
+        <b style="color:#1d4ed8; font-size:14px;">${r.name}</b>
+        <div style="font-size:11px; color:#475569; margin: 4px 0;"><b>Nguyên liệu:</b> ${r.ings.map(i => i[0] + ' (' + i[1] + (currentPrices[i[0]]?.unit || '') + ')').join(', ')}</div>
+        <div class="recipe-section">${r.guide ? r.guide.replace(/\n/g, '<br>') : 'Chưa có hướng dẫn.'}</div>
+      </div>
+    `).join("");
+  }
+}
+
+function renderT6() {
+  const elPrc = document.getElementById("tb-prices");
+  if (elPrc) {
+    elPrc.innerHTML = Object.entries(currentPrices).map(([n, v]) => `
+      <tr>
+        <td><b>${n}</b></td>
+        <td>${v.unit}</td>
+        <td><input type="number" step="1" value="${Math.round(v.price)}" onchange="currentPrices['${n}'].price=Math.max(0,Math.round(Number(this.value)));renderT7()" style="width:100%; text-align:left;"></td>
+      </tr>
+    `).join("");
+  }
+}
+
+function renderT7() {
+  let rev = 0, co = 0;
+  const elProf = document.getElementById("tb-profit");
+  if (elProf) {
+    elProf.innerHTML = recipes.map(r => {
+      let s = Math.round(Number(currentSales.items[r.id] || 0)), c = cost(r), p = r.price - c;
+      rev += r.price * s; co += c * s;
+      return `<tr>
+        <td><b>${r.name}</b></td>
+        <td class="text-right">${money(r.price)}</td>
+        <td class="text-center">${s}</td>
+        <td class="text-right">${money(c)}</td>
+        <td class="text-right" style="font-weight:bold; color:${p < 0 ? '#b91c1c' : '#047857'};">${money(p * s)}</td>
+      </tr>`;
+    }).join("");
+  }
+  if (document.getElementById("sum-rev")) document.getElementById("sum-rev").textContent = money(rev);
+  if (document.getElementById("sum-cost")) document.getElementById("sum-cost").textContent = money(co);
+  if (document.getElementById("sum-prof")) document.getElementById("sum-prof").textContent = money(rev - co);
+}
+
+function exportReport() {
+  let dateVal = document.getElementById("workDate").value;
+  let rev = 0, co = 0;
+  
+  let rows = recipes.map(r => {
+    let s = Math.round(Number(currentSales.items[r.id] || 0));
+    if (s <= 0) return '';
+    let c = cost(r);
+    let p = r.price - c;
+    rev += r.price * s; 
+    co += c * s;
+    return `<tr>
+      <td style="padding: 8px; border: 1px solid #cbd5e1;"><b>${r.name}</b></td>
+      <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">${money(r.price)}</td>
+      <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${s}</td>
+      <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">${money(c)}</td>
+      <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: ${p < 0 ? '#b91c1c' : '#047857'};">${money(p * s)}</td>
+    </tr>`;
+  }).join('');
+
+  if (!rows) {
+    alert("Chưa có món nào bán ra trong ngày để xuất báo cáo!");
+    return;
+  }
+
+  let printWindow = window.open('', '_blank');
+  let printContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Báo Cáo Doanh Thu & Lãi Lỗ - Bếp Nhà</title>
+      <style>
+        body { font-family: sans-serif; padding: 20px; color: #1e293b; }
+        h1 { color: #1e3a8a; text-align: center; margin-bottom: 4px; }
+        .sub-title { text-align: center; font-size: 13px; color: #64748b; margin-bottom: 20px; }
+        .grid { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 10px; }
+        .box { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; text-align: center; }
+        .box-title { font-size: 11px; color: #64748b; font-weight: bold; }
+        .box-val { font-size: 18px; font-weight: bold; margin-top: 4px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px; }
+      </style>
+    </head>
+    <body>
+      <h1>QUÁN BIA BẾP NHÀ</h1>
+      <div class="sub-title">BÁO CÁO DOANH THU & FOOD COST HẰNG NGÀY<br>Ngày lập: <b>${dateVal}</b></div>
+      
+      <div class="grid">
+        <div class="box" style="background:#eff6ff;">
+          <div class="box-title">TỔNG DOANH THU</div>
+          <div class="box-val" style="color:#1d4ed8;">${money(rev)}</div>
+        </div>
+        <div class="box" style="background:#fffbeb;">
+          <div class="box-title">TỔNG FOOD COST</div>
+          <div class="box-val" style="color:#b91c1c;">${money(co)}</div>
+        </div>
+        <div class="box" style="background:#ecfdf5;">
+          <div class="box-title">LÃI GỘP</div>
+          <div class="box-val" style="color:#047857;">${money(rev - co)}</div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Món ăn / Đồ uống</th>
+            <th style="text-align: right;">Giá bán</th>
+            <th style="text-align: center;">Số lượng</th>
+            <th style="text-align: right;">Cost món</th>
+            <th style="text-align: right;">Lãi gộp</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 30px; text-align: right; font-size: 12px; font-style: italic;">
+        Ngày ...... tháng ...... năm 20......<br><b>Người lập báo cáo</b>
+      </div>
+    </body>
+    </html>
+  `;
+
+  printWindow.document.write(printContent);
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => {
+    printWindow.print();
+  }, 500);
+}
+
+function renderAll() { renderT1(); renderT2(); renderT3(); renderT4(); renderT5_Recipe(); renderT6(); renderT7(); }
+
+function resetData() {
+  if (confirm("Reset lại toàn bộ dữ liệu hệ thống? (Bao gồm dữ liệu tất cả các ngày)")) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  loadDateData();
+  renderAll();
+});
+</script>
+</body>
+</html>
