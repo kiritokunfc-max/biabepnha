@@ -3,48 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Checklist Kiểm Kê - Phục Vụ / Quầy Bar</title>
+<title>BẾP NHÀ - Kiểm kê Quầy / Phục vụ</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-body { background: #f1f5f9; color: #1e293b; padding-bottom: 70px; font-size: 12px; }
-header { background: #1e3a8a; color: #fff; padding: 12px; position: sticky; top: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; }
-header h1 { font-size: 15px; font-weight: bold; }
-header p { font-size: 10px; color: #bfdbfe; }
-main { padding: 10px; max-width: 650px; margin: 0 auto; }
-.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-.info-field label { font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 2px; }
-.info-field input, .info-field select { width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: bold; }
-.section-title { font-size: 13px; font-weight: bold; padding: 6px 8px; background: #eff6ff; color: #1d4ed8; border-left: 4px solid #1d4ed8; border-radius: 0 6px 6px 0; margin: 12px 0 8px 0; display: flex; justify-content: space-between; align-items: center; }
+body { background:#f1f5f9; color:#1e293b; padding-bottom:82px; font-size:12px; }
+header { background:#1e3a8a; color:#fff; padding:12px; position:sticky; top:0; z-index:50; display:flex; justify-content:space-between; align-items:center; }
+header h1 { font-size:15px; font-weight:800; }
+header p { font-size:10px; color:#bfdbfe; margin-top:2px; }
+main { padding:10px; max-width:720px; margin:0 auto; }
+.card { background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+.info-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.info-field label { font-size:10px; font-weight:800; color:#64748b; display:block; margin-bottom:3px; }
+.info-field input,.info-field select,.note-input { width:100%; padding:7px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px; font-weight:600; background:#fff; }
+.section-title { font-size:13px; font-weight:800; padding:7px 8px; background:#eff6ff; color:#1d4ed8; border-left:4px solid #1d4ed8; border-radius:0 6px 6px 0; margin:14px 0 8px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.accordion-title { cursor:pointer; user-select:none; }
+.accordion-title:active { transform:scale(.995); }
+.section-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.toggle-icon { width:22px; height:22px; border:1px solid #93c5fd; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; background:#fff; color:#1d4ed8; font-size:15px; font-weight:900; line-height:1; }
+.accordion-content { overflow:hidden; transition:max-height .22s ease, opacity .18s ease; }
+.accordion-content.is-collapsed { display:none; }
 
-/* Header Cột */
-.table-head-row { display: flex; align-items: center; padding: 6px 4px; font-size: 10px; font-weight: bold; background: #f8fafc; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; text-align: center; }
-.col-name { flex: 1; text-align: left; }
-.col-exist-group { width: 110px; color: #16a34a; border-left: 1px solid #e2e8f0; }
-.col-import-group { width: 110px; color: #dc2626; border-left: 1px solid #e2e8f0; }
-
-.check-item { display: flex; align-items: center; padding: 6px 4px; border-bottom: 1px dashed #e2e8f0; }
-.check-item:last-child { border-bottom: none; }
-.item-info { flex: 1; padding-right: 4px; }
-.item-name { font-weight: bold; font-size: 12px; }
-.item-unit { font-size: 10px; color: #64748b; }
-
-/* Khối Cột Tồn */
-.group-exist { width: 110px; display: flex; align-items: center; gap: 4px; padding: 0 4px; border-left: 1px solid #f1f5f9; }
-.group-exist input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #16a34a; flex-shrink: 0; }
-.group-exist input[type="number"] { width: 100%; padding: 4px; text-align: center; border: 1px solid #bbf7d0; border-radius: 4px; font-weight: bold; background: #f0fdf4; font-size: 12px; color: #166534; }
-
-/* Khối Cột Nhập */
-.group-import { width: 110px; display: flex; align-items: center; gap: 4px; padding: 0 4px; border-left: 1px solid #f1f5f9; }
-.group-import input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #dc2626; flex-shrink: 0; }
-.group-import input[type="number"] { width: 100%; padding: 4px; text-align: center; border: 1px solid #fecdd3; border-radius: 4px; font-weight: bold; background: #fff1f2; font-size: 12px; color: #9f1239; }
-
-.btn-add { background: #0284c7; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
-.actions { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 8px 12px; border-top: 1px solid #cbd5e1; display: flex; gap: 8px; justify-content: center; z-index: 100; }
-.btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; text-align: center; color: white; }
-.btn-capture { background: #1d4ed8; }
-.btn-reset { background: #e11d48; flex: 0.3; }
+.btn-add { background:#0284c7; color:#fff; border:none; padding:5px 8px; border-radius:5px; font-size:10px; font-weight:800; cursor:pointer; white-space:nowrap; }
+.table-head-row { display:flex; align-items:center; padding:6px 4px; font-size:10px; font-weight:800; background:#f8fafc; border-top:1px solid #cbd5e1; border-bottom:1px solid #cbd5e1; text-align:center; }
+.col-name { flex:1; text-align:left; }
+.col-exist-group,.group-exist { width:115px; }
+.col-import-group,.group-import { width:115px; }
+.col-exist-group { color:#16a34a; border-left:1px solid #e2e8f0; }
+.col-import-group { color:#dc2626; border-left:1px solid #e2e8f0; }
+.check-item { display:flex; align-items:center; padding:7px 4px; border-bottom:1px dashed #e2e8f0; min-height:45px; }
+.check-item:last-child { border-bottom:none; }
+.item-info { flex:1; padding-right:6px; min-width:0; }
+.item-name { font-weight:800; font-size:12px; line-height:1.25; }
+.item-unit { font-size:10px; color:#64748b; margin-top:2px; }
+.group-exist,.group-import { display:flex; align-items:center; gap:4px; padding:0 4px; border-left:1px solid #f1f5f9; }
+.group-exist input[type="checkbox"],.group-import input[type="checkbox"] { width:18px; height:18px; cursor:pointer; flex-shrink:0; }
+.group-exist input[type="checkbox"] { accent-color:#16a34a; }
+.group-import input[type="checkbox"] { accent-color:#dc2626; }
+.group-exist input[type="number"],.group-import input[type="number"] { width:100%; min-width:0; padding:5px 4px; text-align:center; border-radius:5px; font-weight:800; font-size:12px; }
+.group-exist input[type="number"] { border:1px solid #bbf7d0; background:#f0fdf4; color:#166534; }
+.group-import input[type="number"] { border:1px solid #fecdd3; background:#fff1f2; color:#9f1239; }
+.custom-row { position:relative; }
+.subsection-title {
+  margin:10px 4px 6px; padding:6px 8px;
+  font-size:10px; font-weight:900; color:#475569;
+  background:#f8fafc; border-left:3px solid #94a3b8;
+  border-radius:0 5px 5px 0; text-transform:uppercase;
+  letter-spacing:.2px;
+}
+.btn-remove-item { border:none; background:#fee2e2; color:#b91c1c; width:20px; height:20px; border-radius:50%; font-size:12px; cursor:pointer; font-weight:900; margin-left:4px; flex:0 0 auto; }
+.summary { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:10px; }
+.summary-box { border:1px solid #e2e8f0; border-radius:7px; padding:8px; text-align:center; background:#f8fafc; }
+.summary-box strong { display:block; font-size:16px; }
+.summary-box span { font-size:9px; color:#64748b; }
+.note-label { font-size:10px; font-weight:800; color:#64748b; display:block; margin-top:12px; margin-bottom:4px; }
+.note-input { resize:vertical; font-weight:500; }
+.actions { position:fixed; bottom:0; left:0; right:0; background:#fff; padding:8px 10px; border-top:1px solid #cbd5e1; display:flex; gap:8px; justify-content:center; z-index:100; }
+.btn { flex:1; padding:11px 10px; border:none; border-radius:7px; font-weight:800; font-size:12px; cursor:pointer; color:#fff; }
+.btn-capture { background:#1d4ed8; }
+.btn-reset { background:#e11d48; flex:0.28; }
+.save-state { font-size:9px; text-align:right; color:#64748b; margin-top:4px; }
+@media (max-width:520px) {
+  .col-exist-group,.group-exist,.col-import-group,.group-import { width:108px; }
+  .item-name { font-size:11px; }
+  .summary strong { font-size:15px; }
+}
 </style>
 </head>
 <body>
@@ -70,52 +93,75 @@ main { padding: 10px; max-width: 650px; margin: 0 auto; }
           <option value="Ca Chiều/Tối">Ca Chiều / Tối</option>
         </select>
       </div>
-      <div class="info-field" style="grid-column: span 2;">
+      <div class="info-field" style="grid-column:span 2;">
         <label>NHÂN VIÊN QUẦY / PHỤC VỤ</label>
         <input type="text" id="staffName" placeholder="Nhập tên nhân viên...">
       </div>
     </div>
 
-    <!-- 1. BIA & ĐỒ UỐNG -->
-    <div class="section-title">
+    <div class="save-state" id="saveState">Chưa có thay đổi</div>
+
+    <div class="section-title accordion-title" onclick="toggleSection('section-drinks', this)">
       <span>🍺 1. BIA & NƯỚC NGỌT các loại</span>
-      <button class="btn-add" onclick="addNewItem('group-drinks')">+ Thêm đồ uống</button>
+      <div class="section-actions">
+        <button class="btn-add" onclick="event.stopPropagation(); addNewItem('group-drinks')">+ Thêm đồ uống</button>
+        <span class="toggle-icon">−</span>
+      </div>
     </div>
-    <div class="table-head-row">
-      <div class="col-name">TÊN MẶT HÀNG</div>
-      <div class="col-exist-group">TỒN | SL TỒN</div>
-      <div class="col-import-group">NHẬP | SL NHẬP</div>
+    <div class="accordion-content" id="section-drinks">
+      <div class="table-head-row">
+        <div class="col-name">TÊN MẶT HÀNG</div>
+        <div class="col-exist-group">TỒN | SL TỒN</div>
+        <div class="col-import-group">NHẬP | SL NHẬP</div>
+      </div>
+      <div id="group-drinks"></div>
     </div>
-    <div id="group-drinks"></div>
 
-    <!-- 2. NGUYÊN LIỆU TRÁI CÂY & NƯỚC ÉP -->
-    <div class="section-title">
+    <div class="section-title accordion-title" onclick="toggleSection('section-bar', this)">
       <span>🍹 2. TRÁI CÂY & ĐỒ PHA CHẾ</span>
-      <button class="btn-add" onclick="addNewItem('group-bar')">+ Thêm mặt hàng</button>
+      <div class="section-actions">
+        <button class="btn-add" onclick="event.stopPropagation(); addNewItem('group-bar')">+ Thêm mặt hàng</button>
+        <span class="toggle-icon">+</span>
+      </div>
     </div>
-    <div class="table-head-row">
-      <div class="col-name">TÊN MẶT HÀNG</div>
-      <div class="col-exist-group">TỒN | SL TỒN</div>
-      <div class="col-import-group">NHẬP | SL NHẬP</div>
+    <div class="accordion-content is-collapsed" id="section-bar">
+      <div class="table-head-row">
+        <div class="col-name">TÊN MẶT HÀNG</div>
+        <div class="col-exist-group">TỒN | SL TỒN</div>
+        <div class="col-import-group">NHẬP | SL NHẬP</div>
+      </div>
+      <div id="group-bar"></div>
     </div>
-    <div id="group-bar"></div>
 
-    <!-- 3. VẬT TƯ & ĐỒ DÙNG QUẦY -->
-    <div class="section-title">
-      <span>🧻 3. VẬT TƯ & ĐỒ DÙNG PHỤC VỤ</span>
-      <button class="btn-add" onclick="addNewItem('group-supplies')">+ Thêm vật tư</button>
+    <div class="section-title accordion-title" onclick="toggleSection('section-supplies', this)">
+      <span>🧻 3. NGUYÊN LIỆU BẾP & MÓN NHẬP</span>
+      <div class="section-actions">
+        <button class="btn-add" onclick="event.stopPropagation(); addNewItem('group-supplies')">+ Thêm nguyên liệu</button>
+        <span class="toggle-icon">+</span>
+      </div>
     </div>
-    <div class="table-head-row">
-      <div class="col-name">TÊN MẶT HÀNG</div>
-      <div class="col-exist-group">TỒN | SL TỒN</div>
-      <div class="col-import-group">NHẬP | SL NHẬP</div>
+    <div class="accordion-content is-collapsed" id="section-supplies">
+      <div class="table-head-row">
+        <div class="col-name">TÊN MẶT HÀNG</div>
+        <div class="col-exist-group">TỒN | SL TỒN</div>
+        <div class="col-import-group">NHẬP | SL NHẬP</div>
+      </div>
+      <div id="group-supplies"></div>
     </div>
-    <div id="group-supplies"></div>
 
-    <div style="margin-top: 12px;">
-      <label style="font-size: 10px; font-weight: bold; color: #64748b;">GHI CHÚ / BÁO BỂ VỠ / ĐỀ XUẤT LẤY THÊM:</label>
-      <textarea id="note" rows="2" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; margin-top: 4px;" placeholder="Ví dụ: Vỡ 2 ly bia, hết khăn lạnh..."></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button type="button" class="btn-add" onclick="setAllSections(true)">Mở tất cả</button>
+      <button type="button" class="btn-add" style="background:#64748b;" onclick="setAllSections(false)">Đóng tất cả</button>
     </div>
+
+    <div class="summary">
+      <div class="summary-box"><strong id="countExist">0</strong><span>Mặt hàng có tồn</span></div>
+      <div class="summary-box"><strong id="countImport">0</strong><span>Mặt hàng cần nhập</span></div>
+      <div class="summary-box"><strong id="totalImport">0</strong><span>Tổng SL nhập</span></div>
+    </div>
+
+    <label class="note-label">GHI CHÚ / BÁO BỂ VỠ / ĐỀ XUẤT LẤY THÊM:</label>
+    <textarea id="note" class="note-input" rows="3" placeholder="Ví dụ: Vỡ 2 ly bia, hết khăn lạnh..."></textarea>
   </div>
 </main>
 
@@ -125,98 +171,339 @@ main { padding: 10px; max-width: 650px; margin: 0 auto; }
 </div>
 
 <script>
-document.getElementById("checkDate").value = new Date().toISOString().split('T')[0];
-
 const drinks = [
   ["Bia Hơi Hà Nội 1L", "Ca/Lít"], ["Bia Sài Gòn", "Lon"], ["Bia Heineken Lùn", "Lon"],
   ["Bia Tiger Bạc Lùn", "Lon"], ["Bia Tiger Nâu", "Lon"], ["Bia Crown", "Chai"],
   ["Bia Craft Lager", "Chai"], ["Bia Amber", "Chai"], ["Nước ngọt lon (Sting/Coca/7Up)", "Lon"],
-  ["Bò Húc", "Lon"], ["Nước suối", "Chai"]
-];
-
+  ["Bò Húc", "Lon"], ["Nước suối", "Chai"]];
 const barItems = [
   ["Trái cây ép (Dứa/Táo/Cam/Cà rốt)", "Kg"], ["Dừa tươi", "Trái"],
-  ["Sấu ngâm", "Hũ/Kg"], ["Mơ ngâm", "Hũ/Kg"], ["Đá viên", "Bao"]
-];
-
+  ["Sấu ngâm", "Hũ/Kg"], ["Mơ ngâm", "Hũ/Kg"], ["Đá viên", "Bao"]];
 const supplies = [
-  ["Ly/Cốc bia", "Cái"], ["Khăn lạnh", "Cái"], ["Ống hút", "Gói"],
-  ["Giấy ăn", "Gói"], ["Muỗng/Đũa dự phòng", "Bộ"]
+  // RAU / CỦ / QUẢ TƯƠI
+  ["chanh", "Chưa cập nhật"],
+  ["rau răm", "Chưa cập nhật"],
+  ["ngò", "Chưa cập nhật"],
+  ["hành lá", "Chưa cập nhật"],
+  ["xoài", "Chưa cập nhật"],
+  ["rau muống", "Chưa cập nhật"],
+  ["kinh giới", "Chưa cập nhật"],
+  ["cà chua", "Chưa cập nhật"],
+  ["khổ qua", "Chưa cập nhật"],
+  ["gừng", "Chưa cập nhật"],
+  ["khoai môn", "Chưa cập nhật"],
+  ["chuối xanh", "Chưa cập nhật"],
+  ["rau lang", "Chưa cập nhật"],
+  ["lá mơ", "Chưa cập nhật"],
+  ["lá lốp", "Chưa cập nhật"],
+  ["Dưa leo", "Chưa cập nhật"],
+  ["sả cây", "Chưa cập nhật"],
+  ["trái cây", "Chưa cập nhật"],
+
+  // ĐẠM / ĐỒ TƯƠI
+  ["đậu hũ", "Chưa cập nhật"],
+  ["hến", "Chưa cập nhật"],
+  ["heo rừng", "Chưa cập nhật"],
+  ["ếch", "Chưa cập nhật"],
+  ["lòng", "Chưa cập nhật"],
+
+  // ĐỒ CHẾ BIẾN / NGÂM / LÊN MEN
+  ["cải chua", "Chưa cập nhật"],
+  ["nem lá sung", "Chưa cập nhật"],
+  ["lạp vịt", "Chưa cập nhật"],
+  ["tóp mỡ", "Chưa cập nhật"],
+  ["nem chua", "Chưa cập nhật"],
+
+  // ĐỒ KHÔ / TINH BỘT
+  ["bánh tét", "Chưa cập nhật"],
+  ["bánh đa", "Chưa cập nhật"],
+  ["bún", "Chưa cập nhật"],
+  ["mì", "Chưa cập nhật"],
+
+  // GIA VỊ
+  ["Tương ớt", "Chưa cập nhật"],
+  ["Tiêu", "Chưa cập nhật"],
+
+  // CHƯA PHÂN LOẠI
+  ["dế", "Chưa cập nhật"],
+  ["đậu", "Chưa cập nhật"]
 ];
 
-function renderGroup(items, containerId) {
-  let html = "";
-  items.forEach(([name, unit], idx) => {
-    html += createItemRow(containerId, idx, name, unit);
-  });
-  document.getElementById(containerId).innerHTML = html;
+const STORAGE_KEY = "bepnha_kiemke_v2";
+
+function todayISO() {
+  const d = new Date();
+  const local = new Date(d.getTime() - d.getTimezoneOffset()*60000);
+  return local.toISOString().slice(0,10);
 }
 
-function createItemRow(containerId, idx, name, unit) {
+function createItemRow(containerId, idx, name, unit, isCustom=false) {
+  const safeName = String(name).replace(/`/g, "\\`");
+  const removeButton = isCustom ? `<button class="btn-remove-item" title="Xóa mặt hàng" onclick="removeCustomItem(this)">×</button>` : "";
   return `
-    <div class="check-item" id="item_${containerId}_${idx}">
+    <div class="check-item ${isCustom ? "custom-row" : ""}" data-name="${escapeAttr(name)}" data-unit="${escapeAttr(unit)}" data-custom="${isCustom}">
       <div class="item-info">
-        <div class="item-name">${name}</div>
-        <div class="item-unit">ĐVT: ${unit}</div>
+        <div class="item-name">${escapeHtml(name)}</div>
+        <div class="item-unit">ĐVT: ${escapeHtml(unit)}</div>
       </div>
-      <!-- Nhóm Tồn -->
       <div class="group-exist">
-        <input type="checkbox" id="chk_exist_${containerId}_${idx}">
-        <input type="number" step="any" placeholder="SL tồn" id="qty_exist_${containerId}_${idx}" oninput="document.getElementById('chk_exist_${containerId}_${idx}').checked = this.value > 0;">
+        <input type="checkbox" class="exist-check" onchange="syncState()" aria-label="Có tồn">
+        <input type="number" min="0" step="any" placeholder="SL tồn" class="exist-qty" oninput="syncState(); updateSummary();" onblur="normalizeNumber(this)">
       </div>
-      <!-- Nhóm Nhập -->
       <div class="group-import">
-        <input type="checkbox" id="chk_import_${containerId}_${idx}">
-        <input type="number" step="any" placeholder="SL nhập" id="qty_import_${containerId}_${idx}" oninput="document.getElementById('chk_import_${containerId}_${idx}').checked = this.value > 0;">
+        <input type="checkbox" class="import-check" onchange="syncState()" aria-label="Cần nhập">
+        <input type="number" min="0" step="any" placeholder="SL nhập" class="import-qty" oninput="syncState(); updateSummary();" onblur="normalizeNumber(this)">
       </div>
-    </div>
-  `;
+      ${removeButton}
+    </div>`;
+}
+
+function toggleSection(sectionId, headerEl) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+  const collapsed = section.classList.toggle("is-collapsed");
+  const icon = headerEl.querySelector(".toggle-icon");
+  if (icon) icon.textContent = collapsed ? "+" : "−";
+}
+
+function setAllSections(open) {
+  document.querySelectorAll(".accordion-content").forEach(section => {
+    section.classList.toggle("is-collapsed", !open);
+  });
+  document.querySelectorAll(".accordion-title .toggle-icon").forEach(icon => {
+    icon.textContent = open ? "−" : "+";
+  });
+}
+
+function getSupplyCategory(name) {
+  const n = String(name).toLowerCase();
+  if (["chanh","rau răm","ngò","hành lá","xoài","rau muống","kinh giới","cà chua","khổ qua","gừng","khoai môn","chuối xanh","rau lang","lá mơ","lá lốp","dưa leo","sả cây","trái cây"].includes(n)) return "RAU / CỦ / QUẢ TƯƠI";
+  if (["đậu hũ","hến","heo rừng","ếch","lòng"].includes(n)) return "ĐẠM / ĐỒ TƯƠI";
+  if (["cải chua","nem lá sung","lạp vịt","tóp mỡ","nem chua"].includes(n)) return "ĐỒ CHẾ BIẾN / NGÂM / LÊN MEN";
+  if (["bánh tét","bánh đa","bún","mì"].includes(n)) return "ĐỒ KHÔ / TINH BỘT";
+  if (["tương ớt","tiêu"].includes(n)) return "GIA VỊ";
+  return "CHƯA PHÂN LOẠI";
+}
+
+function renderGroup(items, containerId) {
+  const container = document.getElementById(containerId);
+  if (containerId !== "group-supplies") {
+    container.innerHTML = items.map(([name, unit], idx) => createItemRow(containerId, idx, name, unit)).join("");
+    return;
+  }
+  let html = "";
+  let currentCategory = "";
+  items.forEach(([name, unit], idx) => {
+    const category = getSupplyCategory(name);
+    if (category !== currentCategory) {
+      currentCategory = category;
+      html += `<div class="subsection-title">${category}</div>`;
+    }
+    html += createItemRow(containerId, idx, name, unit);
+  });
+  container.innerHTML = html;
 }
 
 function addNewItem(containerId) {
-  let name = prompt("Nhập tên mặt hàng mới:");
-  if (!name) return;
-  let unit = prompt("Nhập đơn vị tính (Lon, Chai, Cái, Bao...):", "Lon");
-  if (!unit) unit = "Lon";
-  
-  let container = document.getElementById(containerId);
-  let idx = container.children.length + 1000;
-  container.insertAdjacentHTML('beforeend', createItemRow(containerId, idx, name, unit));
+  const name = prompt("Nhập tên mặt hàng mới:");
+  if (!name || !name.trim()) return;
+  const unit = prompt("Nhập đơn vị tính (Lon, Chai, Cái, Bao...):", "Lon") || "Lon";
+  const row = createItemRow(containerId, Date.now(), name.trim(), unit.trim(), true);
+  document.getElementById(containerId).insertAdjacentHTML("beforeend", row);
+  saveState();
+  updateSummary();
 }
 
-function init() {
-  renderGroup(drinks, "group-drinks");
-  renderGroup(barItems, "group-bar");
-  renderGroup(supplies, "group-supplies");
+function removeCustomItem(btn) {
+  if (confirm("Xóa mặt hàng này khỏi checklist?")) {
+    btn.closest(".check-item").remove();
+    saveState();
+    updateSummary();
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+function normalizeNumber(input) {
+  if (input.value !== "" && Number(input.value) < 0) input.value = 0;
+  updateSummary();
+  saveState();
+}
+
+function updateSummary() {
+  const rows = document.querySelectorAll(".check-item");
+  let existCount = 0, importCount = 0, totalImport = 0;
+  rows.forEach(row => {
+    const eq = row.querySelector(".exist-qty");
+    const iq = row.querySelector(".import-qty");
+    const ec = row.querySelector(".exist-check");
+    const ic = row.querySelector(".import-check");
+    const ev = parseFloat(eq?.value || "0");
+    const iv = parseFloat(iq?.value || "0");
+    if (ec?.checked || ev > 0) existCount++;
+    if (ic?.checked || iv > 0) importCount++;
+    totalImport += Number.isFinite(iv) ? iv : 0;
+  });
+  document.getElementById("countExist").textContent = existCount;
+  document.getElementById("countImport").textContent = importCount;
+  document.getElementById("totalImport").textContent = Number.isInteger(totalImport) ? totalImport : totalImport.toFixed(2).replace(/\.00$/,"");
+}
+
+function collectState() {
+  const rows = [...document.querySelectorAll(".check-item")].map(row => ({
+    name: row.dataset.name || "",
+    unit: row.dataset.unit || "",
+    custom: row.dataset.custom === "true",
+    existChecked: row.querySelector(".exist-check")?.checked || false,
+    existQty: row.querySelector(".exist-qty")?.value || "",
+    importChecked: row.querySelector(".import-check")?.checked || false,
+    importQty: row.querySelector(".import-qty")?.value || ""
+  }));
+  return {
+    date: document.getElementById("checkDate").value,
+    shift: document.getElementById("shift").value,
+    staff: document.getElementById("staffName").value,
+    note: document.getElementById("note").value,
+    rows
+  };
+}
+
+function applyState(state) {
+  if (!state) return;
+  document.getElementById("checkDate").value = state.date || todayISO();
+  document.getElementById("shift").value = state.shift || "Ca Sáng";
+  document.getElementById("staffName").value = state.staff || "";
+  document.getElementById("note").value = state.note || "";
+
+  const groups = {};
+  state.rows?.forEach(item => {
+    const key = item.name + "||" + item.unit;
+    groups[key] = item;
+  });
+
+  document.querySelectorAll(".check-item").forEach(row => {
+    const key = (row.dataset.name || "") + "||" + (row.dataset.unit || "");
+    const s = groups[key];
+    if (!s) return;
+    row.querySelector(".exist-check").checked = !!s.existChecked;
+    row.querySelector(".exist-qty").value = s.existQty || "";
+    row.querySelector(".import-check").checked = !!s.importChecked;
+    row.querySelector(".import-qty").value = s.importQty || "";
+  });
+
+  // Restore custom items.
+  const containers = {
+    "group-drinks": new Set(drinks.map(x => x[0]+"||"+x[1])),
+    "group-bar": new Set(barItems.map(x => x[0]+"||"+x[1])),
+    "group-supplies": new Set(supplies.map(x => x[0]+"||"+x[1]))
+  };
+  state.rows?.filter(x => x.custom).forEach(item => {
+    // Avoid adding a custom duplicate already present.
+    let exists = false;
+    document.querySelectorAll(".check-item").forEach(row => {
+      if ((row.dataset.name+"||"+row.dataset.unit) === item.name+"||"+item.unit) exists = true;
+    });
+    if (exists) return;
+    const containerId = inferContainer(item.name, item.unit, state.rows);
+    document.getElementById(containerId).insertAdjacentHTML("beforeend",
+      createItemRow(containerId, Date.now()+Math.random(), item.name, item.unit, true)
+    );
+    const rows = [...document.querySelectorAll(".check-item")];
+    const row = rows[rows.length-1];
+    row.querySelector(".exist-check").checked = !!item.existChecked;
+    row.querySelector(".exist-qty").value = item.existQty || "";
+    row.querySelector(".import-check").checked = !!item.importChecked;
+    row.querySelector(".import-qty").value = item.importQty || "";
+  });
+}
+
+function inferContainer(name, unit) {
+  // Custom items are kept in their most likely category based on unit/name.
+  // Default to drinks, matching the existing quick-add workflow.
+  const n = String(name).toLowerCase();
+  if (/ly|trái|dừa|sấu|mơ|đá|kg/.test(n)) return "group-bar";
+  if (/ly|khăn|ống|giấy|muỗng|đũa|gói|bộ|cái/.test(n)) return "group-supplies";
+  return "group-drinks";
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState()));
+    document.getElementById("saveState").textContent = "✓ Đã lưu trên thiết bị";
+  } catch (e) {}
+  updateSummary();
+}
+
+function syncState() { saveState(); }
+
+function loadState() {
+  document.getElementById("checkDate").value = todayISO();
+  try {
+    const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if (state) applyState(state);
+  } catch (e) {}
+  updateSummary();
 }
 
 function resetForm() {
-  if (confirm("Bạn có chắc muốn xóa toàn bộ dữ liệu vừa nhập?")) {
-    document.querySelectorAll("input[type='number']").forEach(i => i.value = "");
-    document.querySelectorAll("input[type='checkbox']").forEach(c => c.checked = false);
-    document.getElementById("note").value = "";
-  }
+  if (!confirm("Bạn có chắc muốn xóa toàn bộ dữ liệu kiểm kê đang nhập?")) return;
+  document.querySelectorAll("input[type='number']").forEach(i => i.value = "");
+  document.querySelectorAll(".check-item .exist-check,.check-item .import-check").forEach(c => c.checked = false);
+  document.getElementById("staffName").value = "";
+  document.getElementById("note").value = "";
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  document.getElementById("saveState").textContent = "Đã xóa dữ liệu";
+  updateSummary();
 }
 
 function captureAndShare() {
   const staff = document.getElementById("staffName").value.trim();
   if (!staff) {
     alert("Vui lòng nhập Tên nhân viên kiểm kê!");
+    document.getElementById("staffName").focus();
     return;
   }
+  updateSummary();
+  const sections = [...document.querySelectorAll(".accordion-content")];
+  const wasCollapsed = sections.map(section => section.classList.contains("is-collapsed"));
+  setAllSections(true);
   const target = document.getElementById("capture-area");
-  html2canvas(target, { scale: 2 }).then(canvas => {
+  html2canvas(target, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: "#f1f5f9",
+    scrollY: -window.scrollY
+  }).then(canvas => {
+    sections.forEach((section, index) => section.classList.toggle("is-collapsed", wasCollapsed[index]));
+    document.querySelectorAll(".accordion-title .toggle-icon").forEach((icon, index) => {
+      icon.textContent = wasCollapsed[index] ? "+" : "−";
+    });
+    const dateStr = document.getElementById("checkDate").value || todayISO();
+    const shiftStr = document.getElementById("shift").value.replace(/[\\/:*?"<>|]/g, "-");
     const link = document.createElement("a");
-    const dateStr = document.getElementById("checkDate").value;
-    const shiftStr = document.getElementById("shift").value;
     link.download = `KiemKe_QUAY_${shiftStr}_${dateStr}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
-    alert("Đã tải báo cáo kiểm kê Quầy! Hãy gửi ảnh cho Quản lý.");
+    alert("Đã tải báo cáo kiểm kê Quầy. Gửi ảnh cho Quản lý sau khi kiểm tra lại số liệu.");
+  }).catch(err => {
+    sections.forEach((section, index) => section.classList.toggle("is-collapsed", wasCollapsed[index]));
+    document.querySelectorAll(".accordion-title .toggle-icon").forEach((icon, index) => {
+      icon.textContent = wasCollapsed[index] ? "+" : "−";
+    });
+    console.error(err);
+    alert("Không chụp được báo cáo. Hãy thử lại trên Chrome.");
   });
 }
 
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", () => {
+  renderGroup(drinks, "group-drinks");
+  renderGroup(barItems, "group-bar");
+  renderGroup(supplies, "group-supplies");
+  loadState();
+});
 </script>
 </body>
 </html>
