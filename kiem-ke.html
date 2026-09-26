@@ -27,10 +27,12 @@ main { padding:10px; max-width:720px; margin:0 auto; }
 .btn-add { background:#0284c7; color:#fff; border:none; padding:5px 8px; border-radius:5px; font-size:10px; font-weight:800; cursor:pointer; white-space:nowrap; }
 .table-head-row { display:flex; align-items:center; padding:6px 4px; font-size:10px; font-weight:800; background:#f8fafc; border-top:1px solid #cbd5e1; border-bottom:1px solid #cbd5e1; text-align:center; }
 .col-name { flex:1; text-align:left; }
-.col-exist-group,.group-exist { width:115px; }
+.col-exist-group,.group-exist,.col-stock-view,.group-stock-view { width:115px; }
 .col-import-group,.group-import { width:115px; }
-.col-exist-group { color:#16a34a; border-left:1px solid #e2e8f0; }
+.col-exist-group,.col-stock-view { color:#16a34a; border-left:1px solid #e2e8f0; }
 .col-import-group { color:#dc2626; border-left:1px solid #e2e8f0; }
+.group-stock-view { display:flex; align-items:center; justify-content:center; padding:0 4px; border-left:1px solid #f1f5f9; }
+.stock-view-value { width:100%; padding:6px 4px; text-align:center; border:1px solid #bbf7d0; border-radius:5px; font-weight:900; font-size:12px; color:#166534; background:#f0fdf4; }
 .check-item { display:flex; align-items:center; padding:7px 4px; border-bottom:1px dashed #e2e8f0; min-height:45px; }
 .check-item:last-child { border-bottom:none; }
 .item-info { flex:1; padding-right:6px; min-width:0; }
@@ -62,9 +64,41 @@ main { padding:10px; max-width:720px; margin:0 auto; }
 .btn { flex:1; padding:11px 10px; border:none; border-radius:7px; font-weight:800; font-size:12px; cursor:pointer; color:#fff; }
 .btn-capture { background:#1d4ed8; }
 .btn-reset { background:#e11d48; flex:0.28; }
+.mode-switch { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0 12px; }
+.mode-btn { border:1px solid #cbd5e1; background:#f8fafc; color:#475569; padding:9px 8px; border-radius:7px; font-size:12px; font-weight:900; cursor:pointer; }
+.mode-btn.active-import { background:#fff1f2; border-color:#fda4af; color:#be123c; }
+.mode-btn.active-exist { background:#f0fdf4; border-color:#86efac; color:#15803d; }
+.mode-note { font-size:10px; color:#64748b; margin-top:4px; text-align:center; }
 .save-state { font-size:9px; text-align:right; color:#64748b; margin-top:4px; }
+.history-bar { display:flex; flex-direction:column; align-items:flex-end; margin:0 0 10px; gap:5px; }
+.btn-history { background:#475569; color:#fff; border:none; padding:8px 10px; border-radius:7px; font-size:11px; font-weight:900; cursor:pointer; }
+.history-status { font-size:10px; font-weight:900; line-height:1.25; text-align:right; }
+.history-status.pending { color:#dc2626; }
+.history-status.done { color:#16a34a; }
+.modal-backdrop { position:fixed; inset:0; background:rgba(15,23,42,.55); display:none; align-items:flex-end; justify-content:center; z-index:200; }
+.modal-backdrop.show { display:flex; }
+.history-modal { width:min(720px,100%); max-height:85vh; background:#fff; border-radius:14px 14px 0 0; overflow:hidden; box-shadow:0 -10px 30px rgba(0,0,0,.18); }
+.history-head { display:flex; justify-content:space-between; align-items:center; padding:12px; background:#0f172a; color:#fff; }
+.history-head strong { font-size:14px; }
+.history-close { border:none; background:#334155; color:#fff; width:30px; height:30px; border-radius:6px; font-size:18px; cursor:pointer; }
+.history-body { padding:10px; overflow:auto; max-height:calc(85vh - 54px); }
+.history-empty { padding:20px; text-align:center; color:#64748b; }
+.history-item { border:1px solid #e2e8f0; border-radius:9px; padding:10px; margin-bottom:8px; background:#f8fafc; }
+.history-item-head { display:flex; justify-content:space-between; gap:8px; align-items:center; margin-bottom:7px; }
+.history-badge { display:inline-block; padding:3px 6px; border-radius:999px; font-size:9px; font-weight:900; }
+.badge-import { background:#ffe4e6; color:#be123c; }
+.badge-exist { background:#dcfce7; color:#15803d; }
+.history-meta { font-size:10px; color:#64748b; }
+.history-details { display:none; margin-top:8px; background:#fff; border-radius:7px; padding:8px; border:1px solid #e2e8f0; }
+.history-item.open .history-details { display:block; }
+.history-row { display:flex; justify-content:space-between; gap:10px; padding:4px 0; border-bottom:1px dashed #e2e8f0; font-size:10px; }
+.history-row:last-child { border-bottom:none; }
+.history-row strong { text-align:right; }
+.history-footer { margin-top:8px; font-size:9px; color:#64748b; }
+
+
 @media (max-width:520px) {
-  .col-exist-group,.group-exist,.col-import-group,.group-import { width:108px; }
+  .col-exist-group,.group-exist,.col-stock-view,.group-stock-view,.col-import-group,.group-import { width:108px; }
   .item-name { font-size:11px; }
   .summary strong { font-size:15px; }
 }
@@ -75,7 +109,7 @@ main { padding:10px; max-width:720px; margin:0 auto; }
 <header>
   <div>
     <h1>BẾP NHÀ - CHECKLIST QUẦY / PHỤC VỤ</h1>
-    <p>Kiểm Kê Tồn & Báo Nhập Đồ Uống Đầu Ca</p>
+    <p>Phiếu Nhập Hàng / Phiếu Tồn Hàng</p>
   </div>
 </header>
 
@@ -84,11 +118,11 @@ main { padding:10px; max-width:720px; margin:0 auto; }
     <div class="info-grid">
       <div class="info-field">
         <label>NGÀY KIỂM KÊ</label>
-        <input type="date" id="checkDate">
+        <input type="date" id="checkDate" onchange="handleHeaderChange()">
       </div>
       <div class="info-field">
         <label>CA TRỰC</label>
-        <select id="shift">
+        <select id="shift" onchange="handleHeaderChange()">
           <option value="Ca Sáng">Ca Sáng</option>
           <option value="Ca Chiều/Tối">Ca Chiều / Tối</option>
         </select>
@@ -100,6 +134,17 @@ main { padding:10px; max-width:720px; margin:0 auto; }
     </div>
 
     <div class="save-state" id="saveState">Chưa có thay đổi</div>
+    <div class="history-bar">
+      <button type="button" class="btn-history" onclick="showHistory()">🕘 Xem lịch sử báo cáo</button>
+      <div id="historyStatus" class="history-status pending">Hôm nay chưa có phiếu nhập hàng ngày</div>
+    </div>
+
+    <div class="mode-switch" id="modeSwitch">
+      <button type="button" class="mode-btn active-import" id="modeImport" onclick="setFormMode('import')">📦 Phiếu Nhập Hàng</button>
+      <button type="button" class="mode-btn" id="modeExist" onclick="setFormMode('exist')">📋 Phiếu Tồn Hàng</button>
+    </div>
+    <div class="mode-note" id="modeNote">Phiếu Nhập Hàng: xem SL Tồn hiện tại + nhập SL hàng mới.</div>
+    <input type="hidden" id="formMode" value="import">
 
     <div class="section-title accordion-title" onclick="toggleSection('section-drinks', this)">
       <span>🍺 1. BIA & NƯỚC NGỌT các loại</span>
@@ -111,8 +156,9 @@ main { padding:10px; max-width:720px; margin:0 auto; }
     <div class="accordion-content" id="section-drinks">
       <div class="table-head-row">
         <div class="col-name">TÊN MẶT HÀNG</div>
-        <div class="col-exist-group">TỒN | SL TỒN</div>
-        <div class="col-import-group">NHẬP | SL NHẬP</div>
+        <div class="col-exist-group mode-exist-only">TỒN | SL TỒN</div>
+        <div class="col-stock-view mode-import-only">TỒN HIỆN TẠI</div>
+        <div class="col-import-group mode-import-only">NHẬP | SL NHẬP</div>
       </div>
       <div id="group-drinks"></div>
     </div>
@@ -127,8 +173,9 @@ main { padding:10px; max-width:720px; margin:0 auto; }
     <div class="accordion-content is-collapsed" id="section-bar">
       <div class="table-head-row">
         <div class="col-name">TÊN MẶT HÀNG</div>
-        <div class="col-exist-group">TỒN | SL TỒN</div>
-        <div class="col-import-group">NHẬP | SL NHẬP</div>
+        <div class="col-exist-group mode-exist-only">TỒN | SL TỒN</div>
+        <div class="col-stock-view mode-import-only">TỒN HIỆN TẠI</div>
+        <div class="col-import-group mode-import-only">NHẬP | SL NHẬP</div>
       </div>
       <div id="group-bar"></div>
     </div>
@@ -143,8 +190,9 @@ main { padding:10px; max-width:720px; margin:0 auto; }
     <div class="accordion-content is-collapsed" id="section-supplies">
       <div class="table-head-row">
         <div class="col-name">TÊN MẶT HÀNG</div>
-        <div class="col-exist-group">TỒN | SL TỒN</div>
-        <div class="col-import-group">NHẬP | SL NHẬP</div>
+        <div class="col-exist-group mode-exist-only">TỒN | SL TỒN</div>
+        <div class="col-stock-view mode-import-only">TỒN HIỆN TẠI</div>
+        <div class="col-import-group mode-import-only">NHẬP | SL NHẬP</div>
       </div>
       <div id="group-supplies"></div>
     </div>
@@ -238,21 +286,24 @@ function todayISO() {
 }
 
 function createItemRow(containerId, idx, name, unit, isCustom=false) {
-  const safeName = String(name).replace(/`/g, "\\`");
+  const normalizedName = titleCaseName(name);
   const removeButton = isCustom ? `<button class="btn-remove-item" title="Xóa mặt hàng" onclick="removeCustomItem(this)">×</button>` : "";
   return `
-    <div class="check-item ${isCustom ? "custom-row" : ""}" data-name="${escapeAttr(name)}" data-unit="${escapeAttr(unit)}" data-custom="${isCustom}">
+    <div class="check-item ${isCustom ? "custom-row" : ""}" data-name="${escapeAttr(normalizedName)}" data-unit="${escapeAttr(unit)}" data-custom="${isCustom}">
       <div class="item-info">
-        <div class="item-name">${escapeHtml(name)}</div>
+        <div class="item-name">${escapeHtml(normalizedName)}</div>
         <div class="item-unit">ĐVT: ${escapeHtml(unit)}</div>
       </div>
-      <div class="group-exist">
+      <div class="group-exist mode-exist-only">
         <input type="checkbox" class="exist-check" onchange="syncState()" aria-label="Có tồn">
-        <input type="number" min="0" step="any" placeholder="SL tồn" class="exist-qty" oninput="syncState(); updateSummary();" onblur="normalizeNumber(this)">
+        <input type="number" min="0" step="any" placeholder="SL tồn" class="exist-qty" oninput="handleQtyInput(this, 'exist')" onblur="normalizeNumber(this)">
       </div>
-      <div class="group-import">
+      <div class="group-stock-view mode-import-only">
+        <div class="stock-view-value" title="SL tồn hiện tại">0</div>
+      </div>
+      <div class="group-import mode-import-only">
         <input type="checkbox" class="import-check" onchange="syncState()" aria-label="Cần nhập">
-        <input type="number" min="0" step="any" placeholder="SL nhập" class="import-qty" oninput="syncState(); updateSummary();" onblur="normalizeNumber(this)">
+        <input type="number" min="0" step="any" placeholder="SL nhập" class="import-qty" oninput="handleQtyInput(this, 'import')" onblur="normalizeNumber(this)">
       </div>
       ${removeButton}
     </div>`;
@@ -305,34 +356,89 @@ function renderGroup(items, containerId) {
 }
 
 function addNewItem(containerId) {
-  const name = prompt("Nhập tên mặt hàng mới:");
-  if (!name || !name.trim()) return;
-  const unit = prompt("Nhập đơn vị tính (Lon, Chai, Cái, Bao...):", "Lon") || "Lon";
-  const row = createItemRow(containerId, Date.now(), name.trim(), unit.trim(), true);
+  const rawName = prompt("Nhập tên mặt hàng mới:");
+  if (!rawName || !rawName.trim()) return;
+  const name = titleCaseName(rawName);
+  const unitRaw = prompt("Nhập đơn vị tính (Kg, Cái, Chai, Gói, Bao...):", "Kg");
+  const unit = unitRaw && unitRaw.trim() ? titleCaseUnit(unitRaw) : "Kg";
+  const row = createItemRow(containerId, Date.now(), name, unit, true);
   document.getElementById(containerId).insertAdjacentHTML("beforeend", row);
-  saveState();
+
+  const customItems = getCustomItems();
+  const key = name + "||" + unit + "||" + containerId;
+  if (!customItems.some(x => x.name + "||" + x.unit + "||" + x.containerId === key)) {
+    customItems.push({ name, unit, containerId });
+    saveCustomItems(customItems);
+  }
+  saveCurrentRecord();
   updateSummary();
 }
-
 function removeCustomItem(btn) {
-  if (confirm("Xóa mặt hàng này khỏi checklist?")) {
-    btn.closest(".check-item").remove();
-    saveState();
-    updateSummary();
-  }
+  const row = btn.closest(".check-item");
+  if (!row) return;
+  const name = row.dataset.name || "";
+  const unit = row.dataset.unit || "";
+  const containerId = row.closest("[id^='group-']")?.id || inferContainer(name, unit);
+  if (!confirm(`Xóa "${name}" khỏi danh sách mặt hàng?`)) return;
+  row.remove();
+  const items = getCustomItems().filter(x => !(x.name === name && x.unit === unit && x.containerId === containerId));
+  saveCustomItems(items);
+  saveCurrentRecord();
+  updateSummary();
 }
-
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
 function escapeAttr(s) { return escapeHtml(s); }
 
-function normalizeNumber(input) {
-  if (input.value !== "" && Number(input.value) < 0) input.value = 0;
-  updateSummary();
-  saveState();
+function titleCaseName(value) {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .split(" ")
+    .map(word => {
+      if (!word) return word;
+      const first = word.charAt(0).toLocaleUpperCase("vi-VN");
+      return first + word.slice(1);
+    })
+    .join(" ");
 }
 
+function titleCaseUnit(value) {
+  return titleCaseName(value);
+}
+
+function getCustomItems() {
+  try { return JSON.parse(localStorage.getItem("bepnha_kiemke_custom_items_v1") || "[]"); }
+  catch (e) { return []; }
+}
+
+function saveCustomItems(items) {
+  try { localStorage.setItem("bepnha_kiemke_custom_items_v1", JSON.stringify(items)); } catch (e) {}
+}
+
+function normalizeNumber(input) {
+  if (input.value !== "" && Number(input.value) < 0) input.value = 0;
+  const mode = document.getElementById("formMode")?.value || "import";
+  const type = input.classList.contains("exist-qty") ? "exist" : "import";
+  if (type === "exist") {
+    const cb = input.parentElement.querySelector(".exist-check");
+    if (cb) cb.checked = Number(input.value || 0) > 0;
+  } else {
+    const cb = input.parentElement.querySelector(".import-check");
+    if (cb) cb.checked = Number(input.value || 0) > 0;
+  }
+  updateSummary();
+  saveCurrentRecord();
+}
+
+function handleQtyInput(input, type) {
+  const value = parseFloat(input.value || "0");
+  const checkbox = input.parentElement.querySelector(type === "exist" ? ".exist-check" : ".import-check");
+  if (checkbox) checkbox.checked = Number.isFinite(value) && value > 0;
+  updateSummary();
+  saveCurrentRecord();
+}
 function updateSummary() {
   const rows = document.querySelectorAll(".check-item");
   let existCount = 0, importCount = 0, totalImport = 0;
@@ -352,6 +458,47 @@ function updateSummary() {
   document.getElementById("totalImport").textContent = Number.isInteger(totalImport) ? totalImport : totalImport.toFixed(2).replace(/\.00$/,"");
 }
 
+function getCurrentMode() {
+  return document.getElementById("formMode")?.value || "import";
+}
+
+function getStockStore() {
+  try { return JSON.parse(localStorage.getItem(`${STORAGE_KEY}_stock_v1`) || "{}"); }
+  catch (e) { return {}; }
+}
+function saveStockStore(store) {
+  try { localStorage.setItem(`${STORAGE_KEY}_stock_v1`, JSON.stringify(store)); } catch (e) {}
+}
+function stockKey(name, unit) { return `${titleCaseName(name)}||${titleCaseUnit(unit)}`; }
+function getStockQty(name, unit) {
+  const store = getStockStore();
+  const value = Number(store[stockKey(name, unit)]);
+  return Number.isFinite(value) ? value : 0;
+}
+function formatQty(value) {
+  const n = Number(value || 0);
+  return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.00$/, "");
+}
+function refreshStockViews() {
+  document.querySelectorAll('.check-item').forEach(row => {
+    const el = row.querySelector('.stock-view-value');
+    if (el) el.textContent = formatQty(getStockQty(row.dataset.name || '', row.dataset.unit || ''));
+  });
+}
+function getHistoryStore() {
+  try { return JSON.parse(localStorage.getItem(`${STORAGE_KEY}_history_v1`) || "{}"); }
+  catch (e) { return {}; }
+}
+function saveHistoryStore(store) {
+  try { localStorage.setItem(`${STORAGE_KEY}_history_v1`, JSON.stringify(store)); } catch (e) {}
+}
+
+function getRecordStorageKey(mode = getCurrentMode()) {
+  const date = document.getElementById("checkDate")?.value || todayISO();
+  const shift = document.getElementById("shift")?.value || "Ca Sáng";
+  return `${STORAGE_KEY}_record_${date}_${encodeURIComponent(shift)}_${mode}`;
+}
+
 function collectState() {
   const rows = [...document.querySelectorAll(".check-item")].map(row => ({
     name: row.dataset.name || "",
@@ -367,96 +514,323 @@ function collectState() {
     shift: document.getElementById("shift").value,
     staff: document.getElementById("staffName").value,
     note: document.getElementById("note").value,
+    mode: getCurrentMode(),
     rows
   };
 }
 
-function applyState(state) {
-  if (!state) return;
-  document.getElementById("checkDate").value = state.date || todayISO();
-  document.getElementById("shift").value = state.shift || "Ca Sáng";
-  document.getElementById("staffName").value = state.staff || "";
-  document.getElementById("note").value = state.note || "";
+function saveCurrentRecord() {
+  try {
+    const state = collectState();
+    localStorage.setItem(getRecordStorageKey(), JSON.stringify(state));
+    document.getElementById("saveState").textContent = "✓ Đã lưu phiếu trên thiết bị";
+  } catch (e) {}
+  updateSummary();
+}
 
-  const groups = {};
-  state.rows?.forEach(item => {
-    const key = item.name + "||" + item.unit;
-    groups[key] = item;
-  });
+function loadCurrentRecord() {
+  const key = getRecordStorageKey();
+  try {
+    const state = JSON.parse(localStorage.getItem(key) || "null");
+    if (!state) {
+      clearEntryValuesOnly();
+      document.getElementById("staffName").value = "";
+      document.getElementById("note").value = "";
+      document.getElementById("saveState").textContent = "Phiếu mới - chưa có dữ liệu";
+      updateSummary();
+      return;
+    }
+    document.getElementById("staffName").value = state.staff || "";
+    document.getElementById("note").value = state.note || "";
 
-  document.querySelectorAll(".check-item").forEach(row => {
-    const key = (row.dataset.name || "") + "||" + (row.dataset.unit || "");
-    const s = groups[key];
-    if (!s) return;
-    row.querySelector(".exist-check").checked = !!s.existChecked;
-    row.querySelector(".exist-qty").value = s.existQty || "";
-    row.querySelector(".import-check").checked = !!s.importChecked;
-    row.querySelector(".import-qty").value = s.importQty || "";
-  });
+    const groups = {};
+    (state.rows || []).forEach(item => groups[(item.name || "") + "||" + (item.unit || "")] = item);
 
-  // Restore custom items.
-  const containers = {
-    "group-drinks": new Set(drinks.map(x => x[0]+"||"+x[1])),
-    "group-bar": new Set(barItems.map(x => x[0]+"||"+x[1])),
-    "group-supplies": new Set(supplies.map(x => x[0]+"||"+x[1]))
-  };
-  state.rows?.filter(x => x.custom).forEach(item => {
-    // Avoid adding a custom duplicate already present.
-    let exists = false;
     document.querySelectorAll(".check-item").forEach(row => {
-      if ((row.dataset.name+"||"+row.dataset.unit) === item.name+"||"+item.unit) exists = true;
+      const keyRow = (row.dataset.name || "") + "||" + (row.dataset.unit || "");
+      const saved = groups[keyRow];
+      row.querySelector(".exist-check").checked = !!saved?.existChecked;
+      row.querySelector(".exist-qty").value = saved?.existQty || "";
+      row.querySelector(".import-check").checked = !!saved?.importChecked;
+      row.querySelector(".import-qty").value = saved?.importQty || "";
     });
-    if (exists) return;
-    const containerId = inferContainer(item.name, item.unit, state.rows);
-    document.getElementById(containerId).insertAdjacentHTML("beforeend",
-      createItemRow(containerId, Date.now()+Math.random(), item.name, item.unit, true)
-    );
-    const rows = [...document.querySelectorAll(".check-item")];
-    const row = rows[rows.length-1];
-    row.querySelector(".exist-check").checked = !!item.existChecked;
-    row.querySelector(".exist-qty").value = item.existQty || "";
-    row.querySelector(".import-check").checked = !!item.importChecked;
-    row.querySelector(".import-qty").value = item.importQty || "";
+    document.getElementById("saveState").textContent = "✓ Đã tải dữ liệu phiếu";
+  } catch (e) {
+    clearEntryValuesOnly();
+  }
+  updateSummary();
+}
+
+function clearEntryValuesOnly() {
+  document.querySelectorAll(".check-item input[type='number']").forEach(i => i.value = "");
+  document.querySelectorAll(".check-item .exist-check,.check-item .import-check").forEach(c => c.checked = false);
+}
+
+function applyCustomItems() {
+  const customItems = getCustomItems();
+  customItems.forEach(item => {
+    const container = document.getElementById(item.containerId);
+    if (!container) return;
+    const duplicate = [...container.querySelectorAll(".check-item")].some(row => row.dataset.name === titleCaseName(item.name) && row.dataset.unit === item.unit);
+    if (duplicate) return;
+    container.insertAdjacentHTML("beforeend", createItemRow(item.containerId, Date.now()+Math.random(), titleCaseName(item.name), titleCaseUnit(item.unit), true));
+  });
+}
+
+function renderGroup(items, containerId) {
+  const container = document.getElementById(containerId);
+  if (containerId !== "group-supplies") {
+    container.innerHTML = items.map(([name, unit], idx) => createItemRow(containerId, idx, titleCaseName(name), titleCaseUnit(unit))).join("");
+    applyCustomItemsForContainer(containerId);
+    return;
+  }
+  let html = "";
+  let currentCategory = "";
+  items.forEach(([name, unit], idx) => {
+    const displayName = titleCaseName(name);
+    const category = getSupplyCategory(displayName);
+    if (category !== currentCategory) {
+      currentCategory = category;
+      html += `<div class="subsection-title">${category}</div>`;
+    }
+    html += createItemRow(containerId, idx, displayName, titleCaseUnit(unit));
+  });
+  container.innerHTML = html;
+  applyCustomItemsForContainer(containerId);
+}
+
+function applyCustomItemsForContainer(containerId) {
+  const customItems = getCustomItems().filter(item => item.containerId === containerId);
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  customItems.forEach(item => {
+    const normalizedName = titleCaseName(item.name);
+    const normalizedUnit = titleCaseUnit(item.unit);
+    const duplicate = [...container.querySelectorAll(".check-item")].some(row => row.dataset.name === normalizedName && row.dataset.unit === normalizedUnit);
+    if (duplicate) return;
+    container.insertAdjacentHTML("beforeend", createItemRow(containerId, Date.now()+Math.random(), normalizedName, normalizedUnit, true));
   });
 }
 
 function inferContainer(name, unit) {
-  // Custom items are kept in their most likely category based on unit/name.
-  // Default to drinks, matching the existing quick-add workflow.
   const n = String(name).toLowerCase();
   if (/ly|trái|dừa|sấu|mơ|đá|kg/.test(n)) return "group-bar";
   if (/ly|khăn|ống|giấy|muỗng|đũa|gói|bộ|cái/.test(n)) return "group-supplies";
   return "group-drinks";
 }
 
-function saveState() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState()));
-    document.getElementById("saveState").textContent = "✓ Đã lưu trên thiết bị";
-  } catch (e) {}
-  updateSummary();
+function setFormMode(mode) {
+  document.getElementById("formMode").value = mode;
+  const importBtn = document.getElementById("modeImport");
+  const existBtn = document.getElementById("modeExist");
+  importBtn.classList.toggle("active-import", mode === "import");
+  existBtn.classList.toggle("active-exist", mode === "exist");
+  document.getElementById("modeNote").textContent = mode === "import"
+    ? "Phiếu Nhập Hàng: xem SL Tồn hiện tại + nhập SL hàng mới."
+    : "Phiếu Tồn Hàng: cập nhật SL Tồn thực tế tại thời điểm kiểm kê.";
+
+  document.querySelectorAll(".mode-import-only").forEach(el => el.style.display = mode === "import" ? (el.classList.contains("col-stock-view") || el.classList.contains("group-stock-view") ? "flex" : "flex") : "none");
+  document.querySelectorAll(".mode-exist-only").forEach(el => el.style.display = mode === "exist" ? "flex" : "none");
+  document.querySelectorAll(".col-name").forEach(el => el.style.display = "block");
+  loadCurrentRecord();
+  refreshStockViews();
 }
 
-function syncState() { saveState(); }
+function updateSummary() {
+  const rows = document.querySelectorAll(".check-item");
+  const mode = getCurrentMode();
+  let count = 0, total = 0;
+  rows.forEach(row => {
+    const qtySelector = mode === "import" ? ".import-qty" : ".exist-qty";
+    const checkSelector = mode === "import" ? ".import-check" : ".exist-check";
+    const q = row.querySelector(qtySelector);
+    const c = row.querySelector(checkSelector);
+    const v = parseFloat(q?.value || "0");
+    if (c?.checked || v > 0) count++;
+    total += Number.isFinite(v) ? v : 0;
+  });
+  document.getElementById("countExist").textContent = mode === "exist" ? count : "—";
+  document.getElementById("countImport").textContent = mode === "import" ? count : "—";
+  document.getElementById("totalImport").textContent = mode === "import"
+    ? (Number.isInteger(total) ? total : total.toFixed(2).replace(/\.00$/, ""))
+    : "—";
+}
 
-function loadState() {
-  document.getElementById("checkDate").value = todayISO();
-  try {
-    const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-    if (state) applyState(state);
-  } catch (e) {}
-  updateSummary();
+function syncState() { saveCurrentRecord(); }
+
+function handleHeaderChange() {
+  const currentMode = getCurrentMode();
+  // When date/shift changes, load that specific mode's record.
+  loadCurrentRecord();
+  setFormMode(currentMode);
 }
 
 function resetForm() {
-  if (!confirm("Bạn có chắc muốn xóa toàn bộ dữ liệu kiểm kê đang nhập?")) return;
-  document.querySelectorAll("input[type='number']").forEach(i => i.value = "");
-  document.querySelectorAll(".check-item .exist-check,.check-item .import-check").forEach(c => c.checked = false);
+  if (!confirm("Bạn có chắc muốn xóa phiếu hiện tại? Danh sách nguyên liệu đã thêm sẽ vẫn được giữ lại.")) return;
+  try { localStorage.removeItem(getRecordStorageKey()); } catch(e) {}
+  clearEntryValuesOnly();
   document.getElementById("staffName").value = "";
   document.getElementById("note").value = "";
-  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
-  document.getElementById("saveState").textContent = "Đã xóa dữ liệu";
+  document.getElementById("saveState").textContent = "Đã xóa phiếu hiện tại";
   updateSummary();
+}
+
+function getEnteredRows(mode) {
+  return [...document.querySelectorAll('.check-item')].map(row => {
+    const qtyEl = row.querySelector(mode === 'import' ? '.import-qty' : '.exist-qty');
+    const checkEl = row.querySelector(mode === 'import' ? '.import-check' : '.exist-check');
+    const qty = parseFloat(qtyEl?.value || '0');
+    return {
+      name: titleCaseName(row.dataset.name || ''),
+      unit: titleCaseUnit(row.dataset.unit || ''),
+      qty: Number.isFinite(qty) ? qty : 0,
+      checked: !!checkEl?.checked
+    };
+  }).filter(x => x.checked || x.qty > 0);
+}
+
+function getReportId(date, shift, mode) {
+  return `${date}__${shift}__${mode}`;
+}
+
+function commitImportToStock(date, shift) {
+  const mode = 'import';
+  const reportId = getReportId(date, shift, mode);
+  const history = getHistoryStore();
+  const previous = history[reportId];
+  const previousMap = {};
+  (previous?.rows || []).forEach(r => previousMap[stockKey(r.name, r.unit)] = Number(r.qty || 0));
+
+  const entered = getEnteredRows(mode);
+  const currentMap = {};
+  entered.forEach(r => currentMap[stockKey(r.name, r.unit)] = Number(r.qty || 0));
+
+  const stock = getStockStore();
+  const allKeys = new Set([...Object.keys(previousMap), ...Object.keys(currentMap)]);
+  allKeys.forEach(key => {
+    const delta = (currentMap[key] || 0) - (previousMap[key] || 0);
+    if (!delta) return;
+    const next = Math.max(0, Number(stock[key] || 0) + delta);
+    stock[key] = next;
+  });
+  saveStockStore(stock);
+  refreshStockViews();
+  return entered;
+}
+
+function commitExistToStock() {
+  const rows = getEnteredRows('exist');
+  const stock = getStockStore();
+  rows.forEach(r => { stock[stockKey(r.name, r.unit)] = Number(r.qty || 0); });
+  saveStockStore(stock);
+  refreshStockViews();
+  return rows;
+}
+
+function saveReportHistory(mode, rows) {
+  const date = document.getElementById('checkDate').value || todayISO();
+  const shift = document.getElementById('shift').value || 'Ca Sáng';
+  const history = getHistoryStore();
+  const reportId = getReportId(date, shift, mode);
+  history[reportId] = {
+    id: reportId,
+    date,
+    shift,
+    mode,
+    staff: document.getElementById('staffName').value.trim(),
+    note: document.getElementById('note').value.trim(),
+    savedAt: new Date().toISOString(),
+    rows
+  };
+  saveHistoryStore(history);
+  updateImportStatus();
+  return history[reportId];
+}
+
+function updateImportStatus() {
+  const statusEl = document.getElementById('historyStatus');
+  if (!statusEl) return;
+  const today = todayISO();
+  const history = getHistoryStore();
+  const hasTodayImport = Object.values(history).some(r => r && r.mode === 'import' && r.date === today);
+  statusEl.textContent = hasTodayImport
+    ? 'Đã báo cáo phiếu nhập ngày'
+    : 'Hôm nay chưa có phiếu nhập hàng ngày';
+  statusEl.classList.toggle('done', hasTodayImport);
+  statusEl.classList.toggle('pending', !hasTodayImport);
+}
+
+function showHistory() {
+  const history = getHistoryStore();
+  const reports = Object.values(history).sort((a,b) => `${b.date} ${b.savedAt}`.localeCompare(`${a.date} ${a.savedAt}`));
+  const body = document.getElementById('historyBody');
+  if (!reports.length) {
+    body.innerHTML = '<div class="history-empty">Chưa có báo cáo nào được lưu.</div>';
+  } else {
+    body.innerHTML = reports.map((r, idx) => {
+      const isImport = r.mode === 'import';
+      const label = isImport ? 'NHẬP HÀNG' : 'TỒN HÀNG';
+      const rowsHtml = (r.rows || []).map(item => `<div class="history-row"><span>${escapeHtml(item.name)}</span><strong>${formatQty(item.qty)} ${escapeHtml(item.unit)}</strong></div>`).join('');
+      return `<div class="history-item" id="history_${idx}">
+        <div class="history-item-head" onclick="toggleHistoryItem(${idx})" style="cursor:pointer">
+          <div><span class="history-badge ${isImport ? 'badge-import' : 'badge-exist'}">${label}</span><div class="history-meta">${escapeHtml(r.date)} • ${escapeHtml(r.shift)} • ${escapeHtml(r.staff || 'Chưa nhập tên')}</div></div>
+          <span style="font-size:16px;font-weight:900">+</span>
+        </div>
+        <div class="history-details">${rowsHtml || '<div class="history-meta">Không có số liệu.</div>'}${r.note ? `<div class="history-footer">Ghi chú: ${escapeHtml(r.note)}</div>` : ''}<div class="history-footer">Lưu lúc: ${new Date(r.savedAt).toLocaleString('vi-VN')}</div></div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('historyModal').classList.add('show');
+}
+
+function toggleHistoryItem(index) {
+  const item = document.getElementById(`history_${index}`);
+  if (!item) return;
+  item.classList.toggle('open');
+  const icon = item.querySelector('.history-item-head > span');
+  if (icon) icon.textContent = item.classList.contains('open') ? '−' : '+';
+}
+
+function closeHistory(event) {
+  if (event && event.target !== event.currentTarget) return;
+  document.getElementById('historyModal').classList.remove('show');
+}
+
+function filterRowsForCapture(mode) {
+  const rows = [...document.querySelectorAll(".check-item")];
+  const visibleRows = rows.filter(row => {
+    const qty = row.querySelector(mode === "import" ? ".import-qty" : ".exist-qty");
+    const check = row.querySelector(mode === "import" ? ".import-check" : ".exist-check");
+    return !!check?.checked || parseFloat(qty?.value || "0") > 0;
+  });
+  rows.forEach(row => {
+    row.dataset.captureHidden = visibleRows.includes(row) ? "false" : "true";
+    if (!visibleRows.includes(row)) row.style.display = "none";
+  });
+
+  // Hide subsection titles that have no visible items.
+  document.querySelectorAll(".subsection-title").forEach(title => {
+    let next = title.nextElementSibling;
+    let hasVisible = false;
+    while (next && !next.classList.contains("subsection-title")) {
+      if (next.classList.contains("check-item") && next.style.display !== "none") hasVisible = true;
+      next = next.nextElementSibling;
+    }
+    title.dataset.captureHidden = hasVisible ? "false" : "true";
+    if (!hasVisible) title.style.display = "none";
+  });
+  return visibleRows.length;
+}
+
+function restoreCaptureRows() {
+  document.querySelectorAll(".check-item").forEach(row => {
+    row.style.display = "";
+    delete row.dataset.captureHidden;
+  });
+  document.querySelectorAll(".subsection-title").forEach(title => {
+    title.style.display = "";
+    delete title.dataset.captureHidden;
+  });
 }
 
 function captureAndShare() {
@@ -466,44 +840,79 @@ function captureAndShare() {
     document.getElementById("staffName").focus();
     return;
   }
-  updateSummary();
+  const mode = getCurrentMode();
+  saveCurrentRecord();
+  const count = filterRowsForCapture(mode);
+  if (count === 0) {
+    restoreCaptureRows();
+    alert(mode === "import" ? "Chưa có nguyên liệu nào có số lượng nhập." : "Chưa có mặt hàng nào có số lượng tồn.");
+    return;
+  }
+
   const sections = [...document.querySelectorAll(".accordion-content")];
   const wasCollapsed = sections.map(section => section.classList.contains("is-collapsed"));
   setAllSections(true);
+  document.getElementById("modeSwitch").style.display = "none";
+  document.getElementById("modeNote").style.display = "none";
+  document.querySelector('.history-bar').style.display = 'none';
+
   const target = document.getElementById("capture-area");
-  html2canvas(target, {
-    scale: 2,
-    useCORS: true,
-    backgroundColor: "#f1f5f9",
-    scrollY: -window.scrollY
-  }).then(canvas => {
-    sections.forEach((section, index) => section.classList.toggle("is-collapsed", wasCollapsed[index]));
-    document.querySelectorAll(".accordion-title .toggle-icon").forEach((icon, index) => {
-      icon.textContent = wasCollapsed[index] ? "+" : "−";
-    });
+  html2canvas(target, { scale:2, useCORS:true, backgroundColor:"#f1f5f9", scrollY:-window.scrollY }).then(canvas => {
     const dateStr = document.getElementById("checkDate").value || todayISO();
     const shiftStr = document.getElementById("shift").value.replace(/[\\/:*?"<>|]/g, "-");
+    const enteredRows = mode === 'import' ? commitImportToStock(dateStr, document.getElementById("shift").value) : commitExistToStock();
+    saveReportHistory(mode, enteredRows);
+    saveCurrentRecord();
+
+    restoreCaptureRows();
+    sections.forEach((section,index) => section.classList.toggle("is-collapsed", wasCollapsed[index]));
+    document.querySelectorAll(".accordion-title .toggle-icon").forEach((icon,index) => icon.textContent = wasCollapsed[index] ? "+" : "−");
+    document.getElementById("modeSwitch").style.display = "grid";
+    document.getElementById("modeNote").style.display = "block";
+    document.querySelector('.history-bar').style.display = 'flex';
+
+    const modeName = mode === "import" ? "NHAP_HANG" : "TON_HANG";
     const link = document.createElement("a");
-    link.download = `KiemKe_QUAY_${shiftStr}_${dateStr}.png`;
+    link.download = `KiemKe_${modeName}_${shiftStr}_${dateStr}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
-    alert("Đã tải báo cáo kiểm kê Quầy. Gửi ảnh cho Quản lý sau khi kiểm tra lại số liệu.");
+    document.getElementById("saveState").textContent = mode === 'import'
+      ? "✓ Đã lưu phiếu nhập + cộng vào SL Tồn hiện tại"
+      : "✓ Đã lưu phiếu tồn + cập nhật SL Tồn hiện tại";
+    alert(mode === 'import'
+      ? "Đã lưu phiếu nhập theo ngày và cập nhật SL Tồn."
+      : "Đã lưu phiếu tồn theo ngày và cập nhật SL Tồn.");
   }).catch(err => {
-    sections.forEach((section, index) => section.classList.toggle("is-collapsed", wasCollapsed[index]));
-    document.querySelectorAll(".accordion-title .toggle-icon").forEach((icon, index) => {
-      icon.textContent = wasCollapsed[index] ? "+" : "−";
-    });
+    restoreCaptureRows();
+    sections.forEach((section,index) => section.classList.toggle("is-collapsed", wasCollapsed[index]));
+    document.querySelectorAll(".accordion-title .toggle-icon").forEach((icon,index) => icon.textContent = wasCollapsed[index] ? "+" : "−");
+    document.getElementById("modeSwitch").style.display = "grid";
+    document.getElementById("modeNote").style.display = "block";
+    document.querySelector('.history-bar').style.display = 'flex';
     console.error(err);
-    alert("Không chụp được báo cáo. Hãy thử lại trên Chrome.");
+    alert("Không chụp được báo cáo. Dữ liệu chưa được cập nhật vào SL Tồn.");
   });
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
   renderGroup(drinks, "group-drinks");
   renderGroup(barItems, "group-bar");
   renderGroup(supplies, "group-supplies");
-  loadState();
+  setFormMode("import");
+  refreshStockViews();
+  updateImportStatus();
 });
 </script>
+
+<div class="modal-backdrop" id="historyModal" onclick="closeHistory(event)">
+  <div class="history-modal" onclick="event.stopPropagation()">
+    <div class="history-head">
+      <strong>🕘 Lịch sử báo cáo</strong>
+      <button type="button" class="history-close" onclick="closeHistory()">×</button>
+    </div>
+    <div class="history-body" id="historyBody"></div>
+  </div>
+</div>
 </body>
 </html>
