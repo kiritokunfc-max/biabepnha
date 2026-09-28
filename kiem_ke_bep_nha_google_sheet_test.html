@@ -60,7 +60,7 @@ main{padding:10px;max-width:760px;margin:0 auto}.card{background:#fff;border:1px
 <script>
 const KEYS={master:'bepnha_master_items_v4',stock:'bepnha_stock_v4',reports:'bepnha_reports_v4',draft:'bepnha_draft_v4'};
 // Dán URL Web App của Google Apps Script vào đây. Để trống = chạy Demo/Offline bằng localStorage.
-const GOOGLE_SHEETS_API='https://script.google.com/macros/s/AKfycbw5S5Tz-udtENoja4-J5cEUM_wsgeDWCh4IJM-LtNvbgyYEzOqAZjnMmH7MF_Nov3O7/exec';
+const GOOGLE_SHEETS_API='';
 let CLOUD={master:null,stock:null,reports:null};
 const CLOUD_ENABLED=!!GOOGLE_SHEETS_API;
 const baseGroups={
@@ -139,7 +139,7 @@ function renderMode(){
   document.querySelectorAll('.input-check').forEach(i=>i.disabled=!importMode);
   document.querySelectorAll('.stock-qty').forEach(i=>{i.readOnly=importMode;i.placeholder=importMode?(i.value||0):'SL tồn'});
   document.querySelectorAll('.stock-check').forEach(i=>i.disabled=importMode);
-  document.querySelector('.mode-help').textContent=importMode?'Phiếu Nhập Hàng: xem SL Tồn hiện tại, nhập SL Nhập. Khi lưu, SL Nhập sẽ cộng vào SL Tồn.':'Phiếu Tồn Hàng: nhập SL Tồn thực tế. Khi lưu, SL Tồn hiện tại sẽ cập nhật theo số kiểm kê.';
+  document.querySelector('.mode-help').textContent=importMode?'Phiếu Nhập Hàng: xem SL Tồn hiện tại, nhập SL Nhập. Khi lưu, SL Nhập sẽ cộng vào SL Tồn.':'Phiếu Tồn Hàng: nhập SL Tồn thực tế. Có thể nhập 0 để ghi nhận hết hàng. Khi lưu, SL Tồn hiện tại sẽ cập nhật theo số kiểm kê.';
 }
 function switchMode(){clearDraftValues();renderMode();loadDraftForMode();updateSummary()}
 function onQty(input,type){if(type==='input'&&document.getElementById('mode').value!=='import')return;if(type==='stock'&&document.getElementById('mode').value!=='stock'){return}const row=input.closest('.check-item');const v=parseFloat(input.value||'0');const check=row.querySelector(type==='stock'?'.stock-check':'.input-check');check.checked=v>0;updateSummary();saveDraftDebounced()}
@@ -178,7 +178,7 @@ async function addNewItem(group){
 }
 function removeCustomItem(btn){const row=btn.closest('.check-item');const name=row.dataset.name;if(!confirm(`Xóa "${name}" khỏi danh sách dài hạn?`))return;const master=getMaster();const group=row.dataset.group;master.groups[group]=(master.groups[group]||[]).filter(x=>normalizeName(x[0])!==normalizeName(name));saveMaster(master);renderAll()}
 function toggleSection(wrap){const title=document.querySelector(`.section-title[data-section="${wrap}"]`);if(!title)return;title.classList.toggle('collapsed');const chev=title.querySelector('.chev');chev.textContent=title.classList.contains('collapsed')?'▶':'▼'}
-function reportRows(){const mode=document.getElementById('mode').value;return [...document.querySelectorAll('.check-item')].filter(r=>{const qty=mode==='import'?parseFloat(r.querySelector('.import-qty').value||'0'):parseFloat(r.querySelector('.stock-qty').value||'0');return qty>0}).map(r=>({group:r.dataset.group,name:r.dataset.name,unit:r.dataset.unit,stockBefore:getStock()[r.dataset.key]?.qty||0,qty:mode==='import'?parseFloat(r.querySelector('.import-qty').value||'0'):parseFloat(r.querySelector('.stock-qty').value||'0')}))}
+function reportRows(){const mode=document.getElementById('mode').value;return [...document.querySelectorAll('.check-item')].filter(r=>{if(mode==='import'){const qty=parseFloat(r.querySelector('.import-qty').value||'0');return qty>0;}const input=r.querySelector('.stock-qty');const raw=(input.value||'').trim();return raw!=='' && !Number.isNaN(Number(raw));}).map(r=>{const input=mode==='import'?r.querySelector('.import-qty'):r.querySelector('.stock-qty');return {group:r.dataset.group,name:r.dataset.name,unit:r.dataset.unit,stockBefore:getStock()[r.dataset.key]?.qty||0,qty:Number(input.value)}})}
 function keyReport(date,mode){return `${date}__${mode}`}
 async function saveReport(){
   const staff=document.getElementById('staffName').value.trim();
@@ -226,13 +226,54 @@ async function openHistory(){
 }
 function closeHistory(){document.getElementById('historyModal').style.display='none'}
 function reDownload(i){const r=getReports()[i];captureReportImage(r)}
+function reportCreatedAt(r){return r?.createdAt?String(r.createdAt):String(r?.date||'');}
+function sameReportItem(a,b){return normalizeName(a?.name)===normalizeName(b?.name);}
+function canRollbackLocalReport(target,reports){
+  const t=reportCreatedAt(target);
+  for(const later of reports){
+    if(later===target) continue;
+    if(reportCreatedAt(later)<=t) continue;
+    for(const tr of (target.rows||[])){
+      if((later.rows||[]).some(lr=>sameReportItem(tr,lr))) return {ok:false,item:tr.name};
+    }
+  }
+  return {ok:true};
+}
+function rollbackLocalReport(target,reports){
+  const stock=getStock();
+  for(const row of (target.rows||[])){
+    const key=normalizeName(row.name);
+    stock[key]=stock[key]||{name:row.name,unit:row.unit,qty:0};
+    if(row.stockBefore!==undefined && row.stockBefore!==null){
+      stock[key].qty=Number(row.stockBefore)||0;
+    } else {
+      throw new Error(`Phiếu ${target.date} thiếu dữ liệu SL tồn trước khi báo cáo cho "${row.name}". Không thể hoàn tác an toàn.`);
+    }
+  }
+  saveStock(stock);
+}
 async function deleteReport(i){
   const reports=getReports();
-  if(!confirm('Xóa báo cáo này khỏi lịch sử?'))return;
+  const target=reports[i];
+  if(!target){alert('Không tìm thấy phiếu cần xóa.');return;}
+  const check=canRollbackLocalReport(target,reports);
+  if(!check.ok){
+    alert(`Không thể xóa phiếu này vì nguyên liệu "${check.item}" đã được cập nhật ở một phiếu sau đó. Hãy xóa phiếu mới hơn trước để tránh sai SL Tồn.`);
+    return;
+  }
+  if(!confirm(`Xóa phiếu ${target.mode==='import'?'Nhập Hàng':'Tồn Hàng'} ngày ${target.date}?\n\nHệ thống sẽ xóa lịch sử và hoàn tác SL Tồn do phiếu này tạo ra.`))return;
   try{
-    if(CLOUD_ENABLED){const r=reports[i];const res=await apiPost({action:'deleteReport',key:r.key});CLOUD.reports=res.reports||[];}
-    else{reports.splice(i,1);saveReports(reports);}
-    updateReportStatus(); openHistory();
+    if(CLOUD_ENABLED){
+      const res=await apiPost({action:'deleteReport',key:target.key});
+      CLOUD.stock=res.stock||CLOUD.stock;
+      CLOUD.reports=res.reports||[];
+    }else{
+      rollbackLocalReport(target,reports);
+      reports.splice(i,1);
+      saveReports(reports);
+    }
+    updateReportStatus(); updateSummary(); renderAll(); openHistory();
+    alert('Đã xóa phiếu và hoàn tác SL Tồn thành công.');
   }catch(e){alert('Không thể xóa báo cáo: '+e.message);}
 }
 function resetForm(){if(!confirm('Xóa dữ liệu đang nhập trên phiếu này?'))return;document.querySelectorAll('.import-qty').forEach(i=>i.value='');document.querySelectorAll('.input-check').forEach(i=>i.checked=false);document.querySelectorAll('.stock-check').forEach(i=>i.checked=false);if(document.getElementById('mode').value==='stock')document.querySelectorAll('.stock-qty').forEach(i=>i.value=getStock()[i.closest('.check-item').dataset.key]?.qty||'');document.getElementById('staffName').value='';document.getElementById('note').value='';saveDraft();updateSummary()}
