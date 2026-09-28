@@ -101,12 +101,13 @@ async function apiPost(payload){
 }
 function setCloudState(text,color){const el=document.getElementById('cloudState');if(el){el.textContent=text;el.style.color=color}}
 function getMaster(){
-  if(CLOUD_ENABLED && CLOUD.master) return CLOUD.master;
+  if(CLOUD_ENABLED && CLOUD.master && CLOUD.master.groups) return normalizeMasterGroups(CLOUD.master);
   const saved=loadJSON(KEYS.master,null);
-  if(saved&&Array.isArray(saved.groups)) return saved;
+  if(saved&&saved.groups && !Array.isArray(saved.groups)) return normalizeMasterGroups(saved);
   return {groups:JSON.parse(JSON.stringify(baseGroups))};
 }
 function saveMaster(master){
+  master=normalizeMasterGroups(master);
   if(CLOUD_ENABLED){CLOUD.master=master;return;}
   saveJSON(KEYS.master,master);
 }
@@ -114,7 +115,41 @@ function getStock(){return CLOUD_ENABLED&&CLOUD.stock?CLOUD.stock:loadJSON(KEYS.
 function saveStock(stock){if(CLOUD_ENABLED){CLOUD.stock=stock;return;}saveJSON(KEYS.stock,stock)}
 function getReports(){return CLOUD_ENABLED&&Array.isArray(CLOUD.reports)?CLOUD.reports:loadJSON(KEYS.reports,[])}
 function saveReports(reports){if(CLOUD_ENABLED){CLOUD.reports=reports;return;}saveJSON(KEYS.reports,reports)}
-function flattenMaster(master){const arr=[];Object.entries(master.groups).forEach(([group,items])=>items.forEach(([name,unit])=>arr.push({group,name,unit})));return arr}
+function groupKey(raw){
+  const s=normalizeName(raw);
+  const aliases={
+    'group-drinks':'group-drinks','đồ uống':'group-drinks','bia & nước ngọt':'group-drinks','bia va nuoc ngot':'group-drinks',
+    'group-bar':'group-bar','trái cây & pha chế':'group-bar','trai cay & pha che':'group-bar','trái cây & đồ pha chế':'group-bar','trai cay & do pha che':'group-bar',
+    'group-kitchen':'group-kitchen','nguyên liệu bếp':'group-kitchen','nguyen lieu bep':'group-kitchen','nguyên liệu':'group-kitchen','bếp':'group-kitchen',
+    'group-supplies':'group-supplies','vật tư & phục vụ':'group-supplies','vat tu & phuc vu':'group-supplies','vật tư':'group-supplies'
+  };
+  return aliases[s] || null;
+}
+function normalizeMasterGroups(master){
+  const out={};
+  Object.keys(baseGroups).forEach(k=>out[k]=[]);
+  const src=(master&&master.groups)||{};
+  Object.entries(src).forEach(([rawGroup,items])=>{
+    const g=groupKey(rawGroup)||rawGroup;
+    if(!out[g]) return;
+    (items||[]).forEach(item=>{
+      if(Array.isArray(item) && item[0]) out[g].push([String(item[0]),String(item[1]||'')]);
+    });
+  });
+  // Giữ danh sách chuẩn mặc định khi Sheet đang chưa seed dữ liệu nhóm đó.
+  Object.keys(baseGroups).forEach(k=>{
+    if(out[k].length===0) out[k]=JSON.parse(JSON.stringify(baseGroups[k]));
+  });
+  // Loại trùng theo tên trong từng nhóm.
+  Object.keys(out).forEach(k=>{
+    const seen=new Set();
+    out[k]=out[k].filter(([name,unit])=>{
+      const key=normalizeName(name); if(seen.has(key)) return false; seen.add(key); return true;
+    });
+  });
+  return {groups:out};
+}
+function flattenMaster(master){const arr=[];Object.entries(normalizeMasterGroups(master).groups).forEach(([group,items])=>items.forEach(([name,unit])=>arr.push({group,name,unit})));return arr}
 async function loadCloudData(){
   if(!CLOUD_ENABLED){setCloudState('● Đang dùng bộ nhớ trình duyệt','#64748b');return;}
   setCloudState('● Đang kết nối Google Sheets...','#d97706');
@@ -123,11 +158,20 @@ async function loadCloudData(){
   setCloudState('● Đã kết nối Google Sheets','#16a34a');
 }
 function renderAll(){
-  const master=getMaster();
+  const master=normalizeMasterGroups(getMaster());
+  if(CLOUD_ENABLED) CLOUD.master=master;
   Object.entries(master.groups).forEach(([group,items])=>renderGroup(group,items));
   renderMode(); restoreDraft(); updateSummary(); updateReportStatus();
 }
-function renderGroup(group,items){const container=document.getElementById(group);container.innerHTML=items.map(([name,unit])=>rowHTML(group,name,unit,false)).join('')}
+function renderGroup(group,items){
+  const key=groupKey(group)||group;
+  const container=document.getElementById(key);
+  if(!container){
+    console.warn('Bỏ qua nhóm không có container:', group);
+    return;
+  }
+  container.innerHTML=(items||[]).map(([name,unit])=>rowHTML(key,name,unit,false)).join('');
+}
 function rowHTML(group,name,unit,custom){const stock=getStock()[normalizeName(name)]?.qty??0;return `<div class="check-item ${custom?'custom-row':''}" data-group="${esc(group)}" data-name="${esc(name)}" data-key="${esc(normalizeName(name))}" data-unit="${esc(unit)}" data-custom="${custom}"><div class="item-info"><div class="item-name">${esc(name)}</div><div class="item-unit">ĐVT: ${esc(unit)}</div></div><div class="input-group stock-group"><input type="checkbox" class="stock-check" aria-label="Có tồn"><input type="number" class="qty stock-qty" min="0" step="any" placeholder="${stock||0}" value="${stock||''}" ${document.getElementById('mode')?.value==='import'?'readonly':''} oninput="onQty(this,'stock')" onblur="normalizeQty(this)"></div><div class="input-group import-group"><input type="checkbox" class="input-check" aria-label="Có nhập"><input type="number" class="qty import-qty" min="0" step="any" placeholder="0" oninput="onQty(this,'input')" onblur="normalizeQty(this)"></div>${custom?`<button class="btn-remove-item" title="Xóa mặt hàng khỏi danh sách" onclick="removeCustomItem(this)">×</button>`:''}</div>`}
 function renderMode(){
   const mode=document.getElementById('mode').value;const importMode=mode==='import';
@@ -226,54 +270,13 @@ async function openHistory(){
 }
 function closeHistory(){document.getElementById('historyModal').style.display='none'}
 function reDownload(i){const r=getReports()[i];captureReportImage(r)}
-function reportCreatedAt(r){return r?.createdAt?String(r.createdAt):String(r?.date||'');}
-function sameReportItem(a,b){return normalizeName(a?.name)===normalizeName(b?.name);}
-function canRollbackLocalReport(target,reports){
-  const t=reportCreatedAt(target);
-  for(const later of reports){
-    if(later===target) continue;
-    if(reportCreatedAt(later)<=t) continue;
-    for(const tr of (target.rows||[])){
-      if((later.rows||[]).some(lr=>sameReportItem(tr,lr))) return {ok:false,item:tr.name};
-    }
-  }
-  return {ok:true};
-}
-function rollbackLocalReport(target,reports){
-  const stock=getStock();
-  for(const row of (target.rows||[])){
-    const key=normalizeName(row.name);
-    stock[key]=stock[key]||{name:row.name,unit:row.unit,qty:0};
-    if(row.stockBefore!==undefined && row.stockBefore!==null){
-      stock[key].qty=Number(row.stockBefore)||0;
-    } else {
-      throw new Error(`Phiếu ${target.date} thiếu dữ liệu SL tồn trước khi báo cáo cho "${row.name}". Không thể hoàn tác an toàn.`);
-    }
-  }
-  saveStock(stock);
-}
 async function deleteReport(i){
   const reports=getReports();
-  const target=reports[i];
-  if(!target){alert('Không tìm thấy phiếu cần xóa.');return;}
-  const check=canRollbackLocalReport(target,reports);
-  if(!check.ok){
-    alert(`Không thể xóa phiếu này vì nguyên liệu "${check.item}" đã được cập nhật ở một phiếu sau đó. Hãy xóa phiếu mới hơn trước để tránh sai SL Tồn.`);
-    return;
-  }
-  if(!confirm(`Xóa phiếu ${target.mode==='import'?'Nhập Hàng':'Tồn Hàng'} ngày ${target.date}?\n\nHệ thống sẽ xóa lịch sử và hoàn tác SL Tồn do phiếu này tạo ra.`))return;
+  if(!confirm('Xóa báo cáo này khỏi lịch sử?'))return;
   try{
-    if(CLOUD_ENABLED){
-      const res=await apiPost({action:'deleteReport',key:target.key});
-      CLOUD.stock=res.stock||CLOUD.stock;
-      CLOUD.reports=res.reports||[];
-    }else{
-      rollbackLocalReport(target,reports);
-      reports.splice(i,1);
-      saveReports(reports);
-    }
-    updateReportStatus(); updateSummary(); renderAll(); openHistory();
-    alert('Đã xóa phiếu và hoàn tác SL Tồn thành công.');
+    if(CLOUD_ENABLED){const r=reports[i];const res=await apiPost({action:'deleteReport',key:r.key});CLOUD.reports=res.reports||[];}
+    else{reports.splice(i,1);saveReports(reports);}
+    updateReportStatus(); openHistory();
   }catch(e){alert('Không thể xóa báo cáo: '+e.message);}
 }
 function resetForm(){if(!confirm('Xóa dữ liệu đang nhập trên phiếu này?'))return;document.querySelectorAll('.import-qty').forEach(i=>i.value='');document.querySelectorAll('.input-check').forEach(i=>i.checked=false);document.querySelectorAll('.stock-check').forEach(i=>i.checked=false);if(document.getElementById('mode').value==='stock')document.querySelectorAll('.stock-qty').forEach(i=>i.value=getStock()[i.closest('.check-item').dataset.key]?.qty||'');document.getElementById('staffName').value='';document.getElementById('note').value='';saveDraft();updateSummary()}
