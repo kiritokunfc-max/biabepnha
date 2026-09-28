@@ -59,58 +59,32 @@ main{padding:10px;max-width:760px;margin:0 auto}.card{background:#fff;border:1px
 <div class="modal-backdrop" id="historyModal"><div class="modal"><div class="modal-head"><div class="modal-title">🕘 Lịch sử báo cáo</div><button class="modal-close" onclick="closeHistory()">Đóng</button></div><div id="historyList"></div></div></div>
 
 <script>
-const APP_VERSION='2026.09.28.05';
+const APP_VERSION='2026.09.28.06';
 const KEYS={master:`bepnha_master_items_${APP_VERSION}`,stock:`bepnha_stock_${APP_VERSION}`,reports:`bepnha_reports_${APP_VERSION}`,draft:`bepnha_draft_${APP_VERSION}`};
 // Khi chạy dưới dạng Google Apps Script Web App, dữ liệu được lưu trực tiếp vào Google Sheets
 // qua google.script.run. Nếu mở file độc lập, hệ thống vẫn có thể dùng localStorage.
 let CLOUD={master:null,stock:null,reports:null};
-const IN_APPS_SCRIPT = typeof google !== 'undefined' && google.script && google.script.run;
-// Bản Apps Script chính thức: Google Sheets luôn là nguồn dữ liệu chính.
-const CLOUD_ENABLED = !!IN_APPS_SCRIPT;
-function runAppsScript(functionName, args=[]){
-  return new Promise((resolve,reject)=>{
-    if(!IN_APPS_SCRIPT) return reject(new Error('Không chạy trong Google Apps Script Web App.'));
-    const runner = google.script.run
-      .withSuccessHandler(resolve)
-      .withFailureHandler(err=>reject(new Error(err && err.message ? err.message : String(err))));
-    runner[functionName](...args);
+const VERCEL_API = '/api/sheets';
+const CLOUD_ENABLED = true;
+let CLOUD={master:null,stock:null,reports:null};
+async function callBridge(payload){
+  const res = await fetch(VERCEL_API, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    cache:'no-store',
+    body:JSON.stringify(payload)
   });
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch(e) { throw new Error(`Bridge trả về dữ liệu không hợp lệ (${res.status}): ${text.slice(0,200)}`); }
+  if(!res.ok || data.ok===false) throw new Error(data.error || `HTTP ${res.status}`);
+  return data.ok===true ? data : {ok:true,...data};
 }
-const baseGroups={
-  'group-drinks':[
-    ['Bia Hơi Hà Nội 1L','Ca/Lít'],['Bia Sài Gòn','Lon'],['Bia Heineken Lùn','Lon'],['Bia Tiger Bạc Lùn','Lon'],['Bia Tiger Nâu','Lon'],['Bia Crown','Chai'],['Bia Craft Lager','Chai'],['Bia Amber','Chai'],['Nước Ngọt Lon (Sting/Coca/7Up)','Lon'],['Bò Húc','Lon'],['Nước Suối','Chai']
-  ],
-  'group-bar':[
-    ['Trái Cây Ép (Dứa/Táo/Cam/Cà Rốt)','Kg'],['Dừa Tươi','Trái'],['Sấu Ngâm','Hũ/Kg'],['Mơ Ngâm','Hũ/Kg'],['Đá Viên','Bao']
-  ],
-  'group-kitchen':[
-    ['Chanh','Kg'],['Cải Chua','Kg'],['Bánh Tét','Cây'],['Nem Lá Sung','Cái'],['Rau Răm','Bó'],['Ngò','Bó'],['Đậu Hũ','Miếng'],['Hành Lá','Bó'],['Xoài','Kg'],['Lạp Vịt','Cây'],['Hến','Kg'],['Heo Rừng','Kg'],['Tóp Mỡ','Kg'],['Rau Muống','Bó'],['Kinh Giới','Bó'],['Cà Chua','Kg'],['Khổ Qua','Kg'],['Gừng','Kg'],['Khoai Môn','Kg'],['Chuối Xanh','Kg'],['Rau Lang','Bó'],['Dế','Kg'],['Bánh Đa','Gói'],['Ếch','Kg'],['Nem Chua','Cái'],['Đậu','Kg'],['Lòng','Kg'],['Lá Mơ','Bó'],['Lá Lốp','Bó'],['Bún','Kg'],['Trái Cây','Kg'],['Sả Cây','Kg'],['Dưa Leo','Kg'],['Tương Ớt','Chai'],['Tiêu','Kg'],['Mì','Gói']
-  ],
-  'group-supplies':[
-    ['Ly/Cốc Bia','Cái'],['Khăn Lạnh','Cái'],['Ống Hút','Gói'],['Giấy Ăn','Gói'],['Muỗng/Đũa Dự Phòng','Bộ']
-  ]
-};
-const categoryLabels={'group-drinks':'Đồ Uống','group-bar':'Trái Cây & Pha Chế','group-kitchen':'Nguyên Liệu Bếp','group-supplies':'Vật Tư & Phục Vụ'};
-function todayISO(){const d=new Date();const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);return local.toISOString().slice(0,10)}
-function normalizeName(s){return String(s||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('vi-VN')}
-function titleCase(s){return String(s||'').trim().replace(/\s+/g,' ').split(' ').map(w=>{if(!w)return w;return w.charAt(0).toLocaleUpperCase('vi-VN')+w.slice(1)}).join(' ')}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function loadJSON(key,fallback){try{return JSON.parse(localStorage.getItem(key)||'')||fallback}catch(e){return fallback}}
-function saveJSON(key,val){localStorage.setItem(key,JSON.stringify(val))}
 async function apiGet(action,params={}){
-  if(!CLOUD_ENABLED) throw new Error('Ứng dụng chưa chạy trong Google Apps Script Web App.');
-  if(action==='bootstrap') return runAppsScript('getBootstrap');
-  if(action==='history') return runAppsScript('getHistory');
-  throw new Error('GET action không hỗ trợ: '+action);
+  return callBridge({action,...params});
 }
 async function apiPost(payload){
-  if(!CLOUD_ENABLED) throw new Error('Ứng dụng chưa chạy trong Google Apps Script Web App.');
-  const map={setup:'setupSheetsClient',addItem:'addItemClient',saveReport:'saveReportClient',deleteReport:'deleteReportClient'};
-  const fn=map[payload.action];
-  if(!fn) throw new Error('POST action không hỗ trợ: '+payload.action);
-  const data=await runAppsScript(fn,[payload]);
-  if(!data || data.ok===false) throw new Error(data?.error||'Apps Script error');
-  return data.ok===true ? data : {ok:true,...data};
+  return callBridge(payload);
 }
 function setCloudState(text,color){const el=document.getElementById('cloudState');if(el){el.textContent=text;el.style.color=color}}
 function showBuildVersion(){const el=document.getElementById('buildVersion');if(el)el.textContent=`v${APP_VERSION}`}
