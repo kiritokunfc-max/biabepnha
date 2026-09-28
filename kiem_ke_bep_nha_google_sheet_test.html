@@ -35,6 +35,7 @@ main{padding:10px;max-width:760px;margin:0 auto}.card{background:#fff;border:1px
       <button class="history-btn" onclick="openHistory()">🕘 Xem lịch sử báo cáo</button>
     </div>
     <div id="reportStatus" class="report-status pending">Hôm nay chưa có phiếu nhập hàng ngày</div>
+    <div class="mode-help">Phiếu Nhập Hàng: xem SL Tồn hiện tại, nhập SL Nhập. Khi lưu, SL Nhập sẽ cộng vào SL Tồn.</div>
     <div class="save-state" id="saveState">Đã sẵn sàng</div><div class="save-state" id="cloudState" style="font-weight:800;color:#64748b">● Đang dùng bộ nhớ trình duyệt</div><div class="save-state">Kết nối Google Sheets: sửa biến <b>GOOGLE_SHEETS_API</b> trong mã HTML sau khi triển khai Apps Script.</div>
 
     <div class="section-title" data-section="group-drinks-wrap"><div class="left" onclick="toggleSection('group-drinks-wrap')"><span class="chev">▼</span><span>🍺 1. BIA & NƯỚC NGỌT CÁC LOẠI</span></div><button class="btn-add" onclick="event.stopPropagation();addNewItem('group-drinks')">+ Thêm đồ uống</button></div>
@@ -60,7 +61,7 @@ main{padding:10px;max-width:760px;margin:0 auto}.card{background:#fff;border:1px
 <script>
 const KEYS={master:'bepnha_master_items_v4',stock:'bepnha_stock_v4',reports:'bepnha_reports_v4',draft:'bepnha_draft_v4'};
 // Dán URL Web App của Google Apps Script vào đây. Để trống = chạy Demo/Offline bằng localStorage.
-const GOOGLE_SHEETS_API='https://script.google.com/macros/s/AKfycbyYYT6xeo4Q2Pw1dOZoknW9Md7ksQwYdbhB7aUdK7xvg4bEittUVP1kku8Hli0wMXc9/exec';
+const GOOGLE_SHEETS_API='';
 let CLOUD={master:null,stock:null,reports:null};
 const CLOUD_ENABLED=!!GOOGLE_SHEETS_API;
 const baseGroups={
@@ -174,7 +175,7 @@ function renderGroup(group,items){
 }
 function rowHTML(group,name,unit,custom){const stock=getStock()[normalizeName(name)]?.qty??0;return `<div class="check-item ${custom?'custom-row':''}" data-group="${esc(group)}" data-name="${esc(name)}" data-key="${esc(normalizeName(name))}" data-unit="${esc(unit)}" data-custom="${custom}"><div class="item-info"><div class="item-name">${esc(name)}</div><div class="item-unit">ĐVT: ${esc(unit)}</div></div><div class="input-group stock-group"><input type="checkbox" class="stock-check" aria-label="Có tồn"><input type="number" class="qty stock-qty" min="0" step="any" placeholder="${stock||0}" value="${stock||''}" ${document.getElementById('mode')?.value==='import'?'readonly':''} oninput="onQty(this,'stock')" onblur="normalizeQty(this)"></div><div class="input-group import-group"><input type="checkbox" class="input-check" aria-label="Có nhập"><input type="number" class="qty import-qty" min="0" step="any" placeholder="0" oninput="onQty(this,'input')" onblur="normalizeQty(this)"></div>${custom?`<button class="btn-remove-item" title="Xóa mặt hàng khỏi danh sách" onclick="removeCustomItem(this)">×</button>`:''}</div>`}
 function renderMode(){
-  const mode=document.getElementById('mode').value;const importMode=mode==='import';
+  const mode=document.getElementById('mode')?.value||'import';const importMode=mode==='import';
   document.querySelectorAll('.import-group').forEach(el=>el.style.display=importMode?'flex':'none');
   document.querySelectorAll('.input-group.stock-group').forEach(el=>el.style.display='flex');
   document.querySelectorAll('.col-stock').forEach(el=>el.style.display='block');
@@ -183,7 +184,7 @@ function renderMode(){
   document.querySelectorAll('.input-check').forEach(i=>i.disabled=!importMode);
   document.querySelectorAll('.stock-qty').forEach(i=>{i.readOnly=importMode;i.placeholder=importMode?(i.value||0):'SL tồn'});
   document.querySelectorAll('.stock-check').forEach(i=>i.disabled=importMode);
-  document.querySelector('.mode-help').textContent=importMode?'Phiếu Nhập Hàng: xem SL Tồn hiện tại, nhập SL Nhập. Khi lưu, SL Nhập sẽ cộng vào SL Tồn.':'Phiếu Tồn Hàng: nhập SL Tồn thực tế. Có thể nhập 0 để ghi nhận hết hàng. Khi lưu, SL Tồn hiện tại sẽ cập nhật theo số kiểm kê.';
+  const help=document.querySelector('.mode-help'); if(help) help.textContent=importMode?'Phiếu Nhập Hàng: xem SL Tồn hiện tại, nhập SL Nhập. Khi lưu, SL Nhập sẽ cộng vào SL Tồn.':'Phiếu Tồn Hàng: nhập SL Tồn thực tế. Có thể nhập 0 để ghi nhận hết hàng. Khi lưu, SL Tồn hiện tại sẽ cập nhật theo số kiểm kê.';
 }
 function switchMode(){clearDraftValues();renderMode();loadDraftForMode();updateSummary()}
 function onQty(input,type){if(type==='input'&&document.getElementById('mode').value!=='import')return;if(type==='stock'&&document.getElementById('mode').value!=='stock'){return}const row=input.closest('.check-item');const v=parseFloat(input.value||'0');const check=row.querySelector(type==='stock'?'.stock-check':'.input-check');check.checked=v>0;updateSummary();saveDraftDebounced()}
@@ -245,19 +246,21 @@ async function saveReport(){
       const idx=reports.findIndex(r=>r.key===key);if(idx>=0)reports[idx]=report;else reports.push(report);
       reports.sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.createdAt).localeCompare(String(a.createdAt)));saveReports(reports);
     }
-    saveDraft(); updateReportStatus(); updateSummary();
-    document.getElementById('saveState').textContent=CLOUD_ENABLED?'✓ Đã lưu lên Google Sheets':'✓ Đã lưu trên thiết bị';
+    saveDraft();
+    try{updateReportStatus();}catch(uiErr){console.warn('Không cập nhật được trạng thái báo cáo:',uiErr)}
+    try{updateSummary();}catch(uiErr){console.warn('Không cập nhật được tổng hợp:',uiErr)}
+    const saveState=document.getElementById('saveState'); if(saveState) saveState.textContent=CLOUD_ENABLED?'✓ Đã lưu lên Google Sheets':'✓ Đã lưu trên thiết bị';
     setCloudState(CLOUD_ENABLED?'● Đã đồng bộ Google Sheets':'● Đang dùng bộ nhớ trình duyệt',CLOUD_ENABLED?'#16a34a':'#64748b');
     alert(mode==='import'?'Đã lưu phiếu nhập. SL Nhập đã cập nhật vào SL Tồn.':'Đã lưu phiếu tồn hàng. SL Tồn đã cập nhật theo kiểm kê thực tế.');
     captureReportImage(report);
-    renderAll();
+    try{renderAll();}catch(uiErr){console.warn('Đã lưu thành công nhưng render UI có lỗi:',uiErr)}
   }catch(e){
     document.getElementById('saveState').textContent='⚠ Lưu thất bại';
     alert('Không thể lưu báo cáo: '+e.message);
   }
 }
 function captureReportImage(report){const box=document.createElement('div');box.style.position='fixed';box.style.left='-10000px';box.style.top='0';box.style.width='700px';box.style.background='#f1f5f9';box.style.padding='16px';box.innerHTML=`<div style="background:#fff;padding:18px;border-radius:12px;border:1px solid #cbd5e1"><div style="font-size:20px;font-weight:900;color:#1e3a8a">BẾP NHÀ - ${report.mode==='import'?'PHIẾU NHẬP HÀNG':'PHIẾU TỒN HÀNG'}</div><div style="margin-top:6px;font-size:13px">Ngày: ${esc(report.date)} &nbsp;|&nbsp; Ca: ${esc(report.shift)} &nbsp;|&nbsp; NV: ${esc(report.staff)}</div><hr style="margin:12px 0;border:none;border-top:1px solid #e2e8f0">${report.rows.map(x=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #cbd5e1"><span><b>${esc(x.name)}</b><small style="color:#64748b"> (${esc(x.unit)})</small></span><span style="font-weight:900">${report.mode==='import'?`Nhập: ${x.qty}`:`Tồn: ${x.qty}`}</span></div>`).join('')}${report.note?`<div style="margin-top:12px;font-size:12px"><b>Ghi chú:</b> ${esc(report.note)}</div>`:''}</div>`;document.body.appendChild(box);html2canvas(box,{scale:2,backgroundColor:'#f1f5f9'}).then(canvas=>{const link=document.createElement('a');link.download=`BepNha_${report.mode==='import'?'NhapHang':'TonHang'}_${report.date}.png`;link.href=canvas.toDataURL('image/png');link.click();box.remove()}).catch(()=>box.remove())}
-function updateReportStatus(){const today=todayISO();const done=getReports().some(r=>r.date===today&&r.mode==='import');const el=document.getElementById('reportStatus');el.className='report-status '+(done?'done':'pending');el.textContent=done?'Đã báo cáo phiếu nhập ngày':'Hôm nay chưa có phiếu nhập hàng ngày'}
+function updateReportStatus(){const today=todayISO();const reports=CLOUD_ENABLED&&Array.isArray(CLOUD.reports)?CLOUD.reports:getReports();const done=reports.some(r=>String(r.date)===today&&r.mode==='import');const el=document.getElementById('reportStatus');if(!el)return;el.className='report-status '+(done?'done':'pending');el.textContent=done?'Đã báo cáo phiếu nhập ngày':'Hôm nay chưa có phiếu nhập hàng ngày'}
 async function openHistory(){
   try{
     let reports=getReports();
