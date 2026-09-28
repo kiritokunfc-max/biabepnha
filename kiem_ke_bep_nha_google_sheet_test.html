@@ -22,7 +22,7 @@ main{padding:10px;max-width:760px;margin:0 auto}.card{background:#fff;border:1px
 </style>
 </head>
 <body>
-<header><div><h1>BẾP NHÀ - CHECKLIST KIỂM KÊ</h1><p>Phiếu Nhập Hàng / Phiếu Tồn Hàng</p></div></header>
+<header><div><h1>BẾP NHÀ - CHECKLIST KIỂM KÊ</h1><p>Phiếu Nhập Hàng / Phiếu Tồn Hàng</p><div style="font-size:9px;color:#bfdbfe;margin-top:2px">Build <span id="buildVersion"></span></div></div></header>
 <main>
   <div class="card">
     <div class="info-grid">
@@ -32,11 +32,11 @@ main{padding:10px;max-width:760px;margin:0 auto}.card{background:#fff;border:1px
     </div>
     <div class="mode-row">
       <div class="info-field"><label>LOẠI PHIẾU</label><select id="mode" onchange="switchMode()"><option value="import">Phiếu Nhập Hàng</option><option value="stock">Phiếu Tồn Hàng</option></select></div>
-      <button class="history-btn" onclick="openHistory()">🕘 Xem lịch sử báo cáo</button>
+      <button class="history-btn" onclick="openHistory()">🕘 Xem lịch sử báo cáo</button><button class="history-btn" style="background:#475569" onclick="refreshFromSheet()">↻ Đồng bộ</button>
     </div>
     <div id="reportStatus" class="report-status pending">Hôm nay chưa có phiếu nhập hàng ngày</div>
     <div class="mode-help">Phiếu Nhập Hàng: xem SL Tồn hiện tại, nhập SL Nhập. Khi lưu, SL Nhập sẽ cộng vào SL Tồn.</div>
-    <div class="save-state" id="saveState">Đã sẵn sàng</div><div class="save-state" id="cloudState" style="font-weight:800;color:#64748b">● Đang dùng bộ nhớ trình duyệt</div><div class="save-state">Kết nối Google Sheets: sửa biến <b>GOOGLE_SHEETS_API</b> trong mã HTML sau khi triển khai Apps Script.</div>
+    <div class="save-state" id="saveState">Đã sẵn sàng</div><div class="save-state" id="cloudState" style="font-weight:800;color:#64748b">● Đang dùng bộ nhớ trình duyệt</div><div class="save-state">Dữ liệu chính: Google Sheets (khi chạy từ Apps Script Web App)</div>
 
     <div class="section-title" data-section="group-drinks-wrap"><div class="left" onclick="toggleSection('group-drinks-wrap')"><span class="chev">▼</span><span>🍺 1. BIA & NƯỚC NGỌT CÁC LOẠI</span></div><button class="btn-add" onclick="event.stopPropagation();addNewItem('group-drinks')">+ Thêm đồ uống</button></div>
     <div class="section-head group-drinks-wrap"><div class="col-name">TÊN MẶT HÀNG</div><div class="col-stock">SL TỒN</div><div class="col-input" id="headInputDrinks">SL NHẬP</div></div><div class="section-content group-drinks-wrap" id="group-drinks"></div>
@@ -59,11 +59,23 @@ main{padding:10px;max-width:760px;margin:0 auto}.card{background:#fff;border:1px
 <div class="modal-backdrop" id="historyModal"><div class="modal"><div class="modal-head"><div class="modal-title">🕘 Lịch sử báo cáo</div><button class="modal-close" onclick="closeHistory()">Đóng</button></div><div id="historyList"></div></div></div>
 
 <script>
-const KEYS={master:'bepnha_master_items_v4',stock:'bepnha_stock_v4',reports:'bepnha_reports_v4',draft:'bepnha_draft_v4'};
-// Dán URL Web App của Google Apps Script vào đây. Để trống = chạy Demo/Offline bằng localStorage.
-const GOOGLE_SHEETS_API='https://script.google.com/macros/s/AKfycbyYYT6xeo4Q2Pw1dOZoknW9Md7ksQwYdbhB7aUdK7xvg4bEittUVP1kku8Hli0wMXc9/exec';
+const APP_VERSION='2026.09.28.05';
+const KEYS={master:`bepnha_master_items_${APP_VERSION}`,stock:`bepnha_stock_${APP_VERSION}`,reports:`bepnha_reports_${APP_VERSION}`,draft:`bepnha_draft_${APP_VERSION}`};
+// Khi chạy dưới dạng Google Apps Script Web App, dữ liệu được lưu trực tiếp vào Google Sheets
+// qua google.script.run. Nếu mở file độc lập, hệ thống vẫn có thể dùng localStorage.
 let CLOUD={master:null,stock:null,reports:null};
-const CLOUD_ENABLED=!!GOOGLE_SHEETS_API;
+const IN_APPS_SCRIPT = typeof google !== 'undefined' && google.script && google.script.run;
+// Bản Apps Script chính thức: Google Sheets luôn là nguồn dữ liệu chính.
+const CLOUD_ENABLED = !!IN_APPS_SCRIPT;
+function runAppsScript(functionName, args=[]){
+  return new Promise((resolve,reject)=>{
+    if(!IN_APPS_SCRIPT) return reject(new Error('Không chạy trong Google Apps Script Web App.'));
+    const runner = google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(err=>reject(new Error(err && err.message ? err.message : String(err))));
+    runner[functionName](...args);
+  });
+}
 const baseGroups={
   'group-drinks':[
     ['Bia Hơi Hà Nội 1L','Ca/Lít'],['Bia Sài Gòn','Lon'],['Bia Heineken Lùn','Lon'],['Bia Tiger Bạc Lùn','Lon'],['Bia Tiger Nâu','Lon'],['Bia Crown','Chai'],['Bia Craft Lager','Chai'],['Bia Amber','Chai'],['Nước Ngọt Lon (Sting/Coca/7Up)','Lon'],['Bò Húc','Lon'],['Nước Suối','Chai']
@@ -86,21 +98,22 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 function loadJSON(key,fallback){try{return JSON.parse(localStorage.getItem(key)||'')||fallback}catch(e){return fallback}}
 function saveJSON(key,val){localStorage.setItem(key,JSON.stringify(val))}
 async function apiGet(action,params={}){
-  if(!CLOUD_ENABLED) return null;
-  const q=new URLSearchParams({action,...params}).toString();
-  const r=await fetch(`${GOOGLE_SHEETS_API}?${q}`,{cache:'no-store'});
-  const data=await r.json();
-  if(!data.ok) throw new Error(data.error||'API error');
-  return data;
+  if(!CLOUD_ENABLED) throw new Error('Ứng dụng chưa chạy trong Google Apps Script Web App.');
+  if(action==='bootstrap') return runAppsScript('getBootstrap');
+  if(action==='history') return runAppsScript('getHistory');
+  throw new Error('GET action không hỗ trợ: '+action);
 }
 async function apiPost(payload){
-  if(!CLOUD_ENABLED) return null;
-  const r=await fetch(GOOGLE_SHEETS_API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
-  const data=await r.json();
-  if(!data.ok) throw new Error(data.error||'API error');
-  return data;
+  if(!CLOUD_ENABLED) throw new Error('Ứng dụng chưa chạy trong Google Apps Script Web App.');
+  const map={setup:'setupSheetsClient',addItem:'addItemClient',saveReport:'saveReportClient',deleteReport:'deleteReportClient'};
+  const fn=map[payload.action];
+  if(!fn) throw new Error('POST action không hỗ trợ: '+payload.action);
+  const data=await runAppsScript(fn,[payload]);
+  if(!data || data.ok===false) throw new Error(data?.error||'Apps Script error');
+  return data.ok===true ? data : {ok:true,...data};
 }
 function setCloudState(text,color){const el=document.getElementById('cloudState');if(el){el.textContent=text;el.style.color=color}}
+function showBuildVersion(){const el=document.getElementById('buildVersion');if(el)el.textContent=`v${APP_VERSION}`}
 function getMaster(){
   if(CLOUD_ENABLED && CLOUD.master && CLOUD.master.groups) return normalizeMasterGroups(CLOUD.master);
   const saved=loadJSON(KEYS.master,null);
@@ -224,7 +237,7 @@ async function addNewItem(group){
 function removeCustomItem(btn){const row=btn.closest('.check-item');const name=row.dataset.name;if(!confirm(`Xóa "${name}" khỏi danh sách dài hạn?`))return;const master=getMaster();const group=row.dataset.group;master.groups[group]=(master.groups[group]||[]).filter(x=>normalizeName(x[0])!==normalizeName(name));saveMaster(master);renderAll()}
 function toggleSection(wrap){const title=document.querySelector(`.section-title[data-section="${wrap}"]`);if(!title)return;title.classList.toggle('collapsed');const chev=title.querySelector('.chev');chev.textContent=title.classList.contains('collapsed')?'▶':'▼'}
 function reportRows(){const mode=document.getElementById('mode').value;return [...document.querySelectorAll('.check-item')].filter(r=>{if(mode==='import'){const qty=parseFloat(r.querySelector('.import-qty').value||'0');return qty>0;}const input=r.querySelector('.stock-qty');const raw=(input.value||'').trim();return raw!=='' && !Number.isNaN(Number(raw));}).map(r=>{const input=mode==='import'?r.querySelector('.import-qty'):r.querySelector('.stock-qty');return {group:r.dataset.group,name:r.dataset.name,unit:r.dataset.unit,stockBefore:getStock()[r.dataset.key]?.qty||0,qty:Number(input.value)}})}
-function keyReport(date,mode){return `${date}__${mode}`}
+function keyReport(date,mode,shift){return `${date}__${mode}__${normalizeName(shift).replace(/\s+/g,'_')}`}
 async function saveReport(){
   const staff=document.getElementById('staffName').value.trim();
   if(!staff){alert('Vui lòng nhập Tên nhân viên kiểm kê!');return;}
@@ -232,7 +245,8 @@ async function saveReport(){
   const mode=document.getElementById('mode').value;
   const rows=reportRows();
   if(!rows.length){alert('Chưa có số liệu để báo cáo.');return;}
-  const report={key:keyReport(date,mode),date,shift:document.getElementById('shift').value,staff,mode,note:document.getElementById('note').value,rows,createdAt:new Date().toISOString()};
+  const shift=document.getElementById('shift').value;
+  const report={key:keyReport(date,mode,shift),date,shift,staff,mode,note:document.getElementById('note').value,rows,createdAt:new Date().toISOString()};
   try{
     document.getElementById('saveState').textContent='Đang lưu phiếu...';
     if(CLOUD_ENABLED){
@@ -277,13 +291,24 @@ async function deleteReport(i){
   const reports=getReports();
   if(!confirm('Xóa báo cáo này khỏi lịch sử?'))return;
   try{
-    if(CLOUD_ENABLED){const r=reports[i];const res=await apiPost({action:'deleteReport',key:r.key});CLOUD.reports=res.reports||[];}
+    if(CLOUD_ENABLED){const r=reports[i];const res=await apiPost({action:'deleteReport',key:r.key});CLOUD.reports=res.reports||[];CLOUD.stock=res.stock||{};}
     else{reports.splice(i,1);saveReports(reports);}
     updateReportStatus(); openHistory();
   }catch(e){alert('Không thể xóa báo cáo: '+e.message);}
 }
+async function refreshFromSheet(){
+  if(!CLOUD_ENABLED){alert('Chức năng này chỉ chạy khi mở bằng URL Web App Google Apps Script.');return;}
+  try{
+    setCloudState('● Đang tải lại dữ liệu...','#d97706');
+    const d=await apiGet('bootstrap');
+    CLOUD.master=d.master; CLOUD.stock=d.stock||{}; CLOUD.reports=d.reports||[];
+    renderAll();
+    setCloudState('● Đã đồng bộ Google Sheets','#16a34a');
+    alert('Đã tải lại dữ liệu mới nhất từ Google Sheets.');
+  }catch(e){setCloudState('● Đồng bộ thất bại','#dc2626');alert('Không thể tải lại dữ liệu: '+e.message);}
+}
 function resetForm(){if(!confirm('Xóa dữ liệu đang nhập trên phiếu này?'))return;document.querySelectorAll('.import-qty').forEach(i=>i.value='');document.querySelectorAll('.input-check').forEach(i=>i.checked=false);document.querySelectorAll('.stock-check').forEach(i=>i.checked=false);if(document.getElementById('mode').value==='stock')document.querySelectorAll('.stock-qty').forEach(i=>i.value=getStock()[i.closest('.check-item').dataset.key]?.qty||'');document.getElementById('staffName').value='';document.getElementById('note').value='';saveDraft();updateSummary()}
-async function init(){document.getElementById('checkDate').value=todayISO();try{await loadCloudData();}catch(e){setCloudState('● Kết nối Google Sheets thất bại','#dc2626');alert('Không kết nối được Google Sheets. Hệ thống tạm chạy bằng dữ liệu trên thiết bị.');}renderAll();document.getElementById('checkDate').addEventListener('change',()=>{saveDraft();updateReportStatus()});document.getElementById('shift').addEventListener('change',()=>{saveDraft();updateReportStatus();loadDraftForMode()});document.getElementById('staffName').addEventListener('input',saveDraft);document.getElementById('note').addEventListener('input',saveDraft);document.getElementById('historyModal').addEventListener('click',e=>{if(e.target.id==='historyModal')closeHistory()})}
+async function init(){showBuildVersion();document.getElementById('checkDate').value=todayISO();try{await loadCloudData();}catch(e){setCloudState('● Kết nối Google Sheets thất bại','#dc2626');alert('Không kết nối được Google Sheets. Hệ thống tạm chạy bằng dữ liệu trên thiết bị.');}renderAll();document.getElementById('checkDate').addEventListener('change',()=>{saveDraft();updateReportStatus()});document.getElementById('shift').addEventListener('change',()=>{saveDraft();updateReportStatus();loadDraftForMode()});document.getElementById('staffName').addEventListener('input',saveDraft);document.getElementById('note').addEventListener('input',saveDraft);document.getElementById('historyModal').addEventListener('click',e=>{if(e.target.id==='historyModal')closeHistory()})}
 document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
